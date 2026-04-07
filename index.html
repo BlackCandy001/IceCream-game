@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Cream Shop</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; /* Tốt cho pixel art */
+        }
+        #game-container {
+            width: 1024px;
+            height: 768px;
+        }
+        /* Tắt mờ nịnh mắt của ảnh khi co giãn */
+        canvas {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <!-- Script chạy game -->
+    <script type="module" src="/src/game.js"></script>
+</body>
+</html>

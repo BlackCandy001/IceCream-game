@@ -1,0 +1,34 @@
+Thao tác
+
+Loand game:
+- khi người chơi vào game thì sẽ xuất hiện background là D:\Project\IceCream-game\Game item img\Background cửa hàng\Ảnh ngoài cửa hàng.png
+- hiển thị thêm giao diện bảng ở D:\Project\IceCream-game\Game item img\icon\UI\Bảng.png chứa các nút icon ở D:\Project\IceCream-game\Game item img\icon để người dùng tương tác vào game
+
+
+Vào game:
+- KHi người dùng đã vào game thì sẽ hiển thị giao điện quầy kem ở D:\Project\IceCream-game\Game item img\Background cửa hàng\quầy làm kem không item.png
+- cái vật phẩm có thể tương tác nằm ở D:\Project\IceCream-game\Game item img\Thiết bị và công cụ làm kem 
+
+Các vật phẩm thao tác như sau:
+-nước uống:
++ khi người dùng nhấn vào D:\Project\IceCream-game\Game item img\Thiết bị và công cụ làm kem\máy pha đồ uồng đối diện.png thì sẽ chuyển qua giao diện D:\Project\IceCream-game\Game item img\icon\UI\Bề mặt.png chứa D:\Project\IceCream-game\Game item img\Thiết bị và công cụ làm kem\máy pha đồ uống.png
++ khi người dùng nhấn vào D:\Project\IceCream-game\Game item img\Thiết bị và công cụ làm kem\máy pha đồ uống.png thì sẽ hiển thị D:\Project\IceCream-game\Game item img\Đồ uống\Cốc cà phê đầy.png và quay lại quầy kem
+
+-Kem:
++ khi người dùng nhấn vào D:\Project\IceCream-game\Game item img\Thiết bị và công cụ làm kem\tủ kem.png thì sẽ chuyển qua giao diện D:\Project\IceCream-game\Game item img\icon\UI\Bề mặt.png và hiển thị các lọ D:\Project\IceCream-game\Game item img\bánh vụn trang trí và 1 bảng D:\Project\IceCream-game\Game item img\icon\UI\bảng kem.png chứa các D:\Project\IceCream-game\Game item img\Lớp kem đơn
++ các item có thể được tương tác và kéo thả
+
+- quy trình làm kem:
++ người dùng click vào D:\Project\IceCream-game\Game item img\bánh vụn trang trí\bánh ốc quế.png để xuất hiện D:\Project\IceCream-game\Game item img\bánh vụn trang trí\ốc quế đơn.png
++ tiếp đến là kéo thả lớp kem đơn ở bảng kem
++ kem sẽ hiển thị tương ứng với loại lớp kem mà người dùng kéo thả
+
+
+-Các nhân vật:
++ Nhân vật sẽ vào trong thời gian ngẫu nhiên từ 5-20 giây
++ tối đa chỉ có 3 người trong cửa hàng
+
+-hoạt ảnh nhân vật:
++ các char được lưu ở D:\Project\IceCream-game\Game item img\Char mỗi thư mục char đều có 1 hoạt ảnh img1, img2 chúng sẽ thay phiên đổi vị trí liên tục nếu nhân vật di chuyển và nếu đứng im thì chỉ hiển thị img1 tương ứng với nhân vật đó
++ các bong bóng chat được lưu ở D:\Project\IceCream-game\Game item img\Char\Bóng chat chúng sẽ hiển thị cùng với loại kem ở ngẫu nhiên mà nhân vật yêu cầu. các loại kem sẽ lấy ở D:\Project\IceCream-game\Game item img\các loại kem
+
