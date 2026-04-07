@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import DebugTool from '../utils/DebugTool';
+import LayoutUtils from '../utils/LayoutUtils';
+import UIFX from '../utils/UIFX';
 
 export default class RecipeScene extends Phaser.Scene {
     constructor() {
@@ -7,54 +8,51 @@ export default class RecipeScene extends Phaser.Scene {
     }
 
     create() {
-        DebugTool.init(this);
+        const { width, height } = this.cameras.main;
+        const uiBase = { w: 1024, h: 768 };
+        const metrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
 
-        // Lớp màng chắn đen thui mờ mờ vắt ngang màn chơi (cản luôn click để không bấm nhầm GameScene bên dưới)
-        let overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.7);
-        overlay.fillRect(0, 0, 1024, 768);
-        overlay.setInteractive(new Phaser.Geom.Rectangle(0, 0, 1024, 768), Phaser.Geom.Rectangle.Contains);
+        // 1. LỚP PHỦ TRONG SUỐT (Giai đoạn 5 - Fix)
+        // Giảm alpha xuống 0.3 để vẫn nhìn thấy tiệm kem và khách hàng phía sau
+        const bg = this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.3);
+        bg.setInteractive();
 
-        // Hiện bảng Noti (Thu nhỏ lại để không chiếm hết cả màn hình che mất nút)
-        let board = this.add.image(512, 384, 'ui-noti');
-        board.setScale(0.3); // Kích thước an toàn để không che mù mịt
-        
-        // Thêm text chỉ dẫn Thoát
-        let text = this.add.text(512, 700, '(Nhấp chuột ra vòng ngoài màn hình đen để Đóng)', { font: '24px Arial', fill: '#ffffff', fontStyle: 'italic' }).setOrigin(0.5);
+        // 2. BẢNG RECIPE
+        const panelPos = LayoutUtils.getPos(this, 0.5, 0.5, uiBase.w, uiBase.h);
+        // let panel = this.add.sprite(panelPos.x, panelPos.y, 'ui_atlas', 'panel_recipe');
+        // panel.setScale(0.35 * metrics.scale).setDepth(100);
 
-        // ============================================
-        // KHU VỰC VIẾT CHỮ LÊN BẢNG THÔNG BÁO (NOTI)
-        // ============================================
-        // Hướng dẫn: Bạn chỉ cần đổi X, Y và Nội Dung trong dấu nháy đơn. Lập tức game sẽ nhảy chữ theo!
-        
-        // 1. Tiêu đề
-        this.add.text(512, 250, 'TIỆM KEM PIXEL - HƯỚNG DẪN', { 
-            font: 'bold 26px "Courier New", monospace', 
-            fill: '#883311' 
-        }).setOrigin(0.5); // Nằm trong phạm vi mép trên bảng
+        const notiPos = LayoutUtils.getPos(this, 0.5, 0.54, uiBase.w, uiBase.h);
+        let noti = this.add.sprite(notiPos.x, notiPos.y, 'ui_atlas', 'noti');
+        noti.setScale(0.22 * metrics.scale).setDepth(110);
 
-        // 2. Nội dung hướng dẫn cách chơi
-        let phanHuongDan = 
-            "[1]. Đón Khách: Chờ Khách đứng vào ô gọi món.\n\n" +
-            "[2]. Pha Chế: Tương tác Máy Cà Phê hoặc Tủ Kem.\n\n" +
-            "[3]. Đóng Gói: Múc đủ món, bấm Balo để cất.\n\n" +
-            "[4]. Thu Tiền: Click trực tiếp vào Khách để giao.\n\n" +
-            "[5]. Bị khách che khuất: Click liên tục vào Khách để di chuyển\n\n" +
+        // NỘI DUNG HƯỚNG DẪN (Giai đoạn 5.5 - Fix)
+        const textPos = LayoutUtils.getPos(this, 0.5, 0.53, uiBase.w, uiBase.h);
+        const instructions = 
+            "[1]. Đón Khách: Chờ Khách đứng vào ô gọi món.\n" +
+            "[2]. Pha Chế: Tương tác Máy Cà Phê hoặc Tủ Kem.\n" +
+            "[3]. Đóng Gói: Múc đủ món, bấm Balo để cất.\n" +
+            "[4]. Thu Tiền: Click trực tiếp vào Khách để giao.\n" +
             "!! CHÚ Ý: Bán trước 90 giây kẻo khách bỏ đi !";
 
-        this.add.text(512, 400, phanHuongDan, { 
-            font: 'bold 18px "Courier New", monospace', 
+        this.add.text(textPos.x, textPos.y, instructions, {
+            font: `bold ${Math.round(18 * metrics.scale)}px "Courier New", monospace`,
             fill: '#222222',
             align: 'center',
-            lineSpacing: 8
-        }).setOrigin(0.5);
+            lineSpacing: 15
+        }).setOrigin(0.5).setDepth(120);
 
-        // ============================================
-
-        // Đóng bảng Recipe và Tiếp tục GameScene
-        overlay.on('pointerdown', () => {
-            this.scene.stop();
-            this.scene.resume('GameScene'); // Khôi phục dòng chảy thời gian của quầy
+        // 3. NÚT QUAY LẠI (Đồng bộ tọa độ chuẩn 0.067, 0.225)
+        const closePos = LayoutUtils.getPos(this, 0.067, 0.225, uiBase.w, uiBase.h);
+        let closeBtn = this.add.sprite(closePos.x, closePos.y, 'icon_atlas', 'back').setInteractive();
+        closeBtn.setScale(0.131 * metrics.scale).setDepth(2000); // Tăng depth để không bị panel che khuất
+        UIFX.addClickBounce(this, closeBtn);
+        closeBtn.on('pointerdown', () => {
+             this.scene.stop();
+             this.scene.resume('GameScene');
         });
+
+        // --- VÁ LỖI RESIZE ---
+        this.scale.once('resize', () => this.scene.restart());
     }
 }

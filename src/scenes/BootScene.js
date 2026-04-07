@@ -6,108 +6,54 @@ export default class BootScene extends Phaser.Scene {
     }
 
     preload() {
-        // Thêm thanh tiến trình 
+        const { width, height } = this.cameras.main;
+        
+        // --- THANH TIẾN TRÌNH ---
         let progressBar = this.add.graphics();
         let progressBox = this.add.graphics();
         progressBox.fillStyle(0x222222, 0.8);
-        progressBox.fillRect(240, 360, 520, 50);
+        progressBox.fillRect(width/2 - 260, height/2 - 25, 520, 50);
 
-        let width = this.cameras.main.width;
-        let height = this.cameras.main.height;
-        let loadingText = this.make.text({
-            x: width / 2,
-            y: height / 2 - 50,
-            text: 'Đang tải...',
-            style: {
-                font: '20px monospace',
-                fill: '#ffffff'
-            }
-        });
-        loadingText.setOrigin(0.5, 0.5);
+        let loadingText = this.add.text(width/2, height/2 - 50, 'Đang tải...', {
+            font: '20px Arial', fill: '#ffffff'
+        }).setOrigin(0.5);
 
-        this.load.on('progress', function (value) {
+        this.load.on('progress', (value) => {
             progressBar.clear();
-            progressBar.fillStyle(0xffffff, 1);
-            progressBar.fillRect(250, 370, 500 * value, 30);
+            progressBar.fillStyle(0xffe064, 1);
+            progressBar.fillRect(width/2 - 250, height/2 - 15, 500 * value, 30);
         });
 
-        this.load.on('complete', function () {
+        this.load.on('complete', () => {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
         });
 
-        // Load Backgrounds
-        this.load.image('bg-outside', 'Game item img/Background cửa hàng/Ảnh ngoài cửa hàng.png');
-        this.load.image('bg-shop', 'Game item img/Background cửa hàng/quầy làm kem không item.png');
-        this.load.image('ui-board', 'Game item img/icon/UI/Bảng.png');
-        this.load.image('ui-surface', 'Game item img/icon/UI/Bề mặt.png');
-        this.load.image('ui-icecream-panel', 'Game item img/icon/UI/bảng kem.png');
-        this.load.image('ui-noti', 'Game item img/icon/UI/noti.png');
+        // *** BẮT LỖI ASSET - Ngăn game bị treo nếu một file không tải được ***
+        this.load.on('loaderror', (file) => {
+            console.warn(`[BootScene] Không tải được: ${file.key} (${file.url}) - Bỏ qua và tiếp tục.`);
+        });
 
-        // Load Equipments
-        this.load.image('drink-machine-front', 'Game item img/Thiết bị và công cụ làm kem/máy pha đồ uồng đối diện.png');
-        this.load.image('drink-machine-close', 'Game item img/Thiết bị và công cụ làm kem/máy pha đồ uống.png');
-        this.load.image('drink-machine-empty', 'Game item img/Thiết bị và công cụ làm kem/máy pha cà phê không cốc.png');
-        this.load.image('icecream-drawer', 'Game item img/Thiết bị và công cụ làm kem/tủ kem.png');
+        // -------------------------------------------------------------
+        // NẠP TÀI NGUYÊN CHUẨN HÓA (Standardized Assets)
+        // -------------------------------------------------------------
 
-        // Load Buttons & UI
-        this.load.image('btn-play', 'Game item img/icon/Play.png');
-        this.load.image('btn-exit', 'Game item img/icon/Thoát.png');
-        this.load.image('btn-stop', 'Game item img/icon/Stop.png');
-        this.load.image('btn-back', 'Game item img/icon/Quay lại.png');
-        this.load.image('icon-balo', 'Game item img/icon/balo.png');
-        this.load.image('icon-gold', 'Game item img/icon/Goild.png');
-        this.load.image('icon-book', 'Game item img/icon/book.png');
+        // 1. ATLAS XML 
+        this.load.atlasXML('icon_atlas', 'Game item img/icon/icon_atlas.png', 'Game item img/icon/icon_atlas.xml');
+        this.load.atlasXML('char_atlas', 'Game item img/Char/char_atlas.png', 'Game item img/Char/char_atlas.xml');
+        this.load.atlasXML('ui_atlas', 'Game item img/icon/UI/ui_atlas.png', 'Game item img/icon/UI/ui_atlas.xml');
+        this.load.atlasXML('machine_atlas', 'Game item img/Thiết bị và công cụ làm kem/machine_atlas.png', 'Game item img/Thiết bị và công cụ làm kem/machine_atlas.xml');
+        this.load.atlasXML('cream_atlas', 'Game item img/Lớp kem đơn/classCream.png', 'Game item img/Lớp kem đơn/class_cream_atlas.xml');
+        this.load.atlasXML('drink_atlas', 'Game item img/Đồ uống/drink_atlas.png', 'Game item img/Đồ uống/drink_atlas.xml');
+        this.load.atlasXML('vun_atlas', 'Game item img/bánh vụn trang trí/vun_atlas.png', 'Game item img/bánh vụn trang trí/vun_atlas.xml');
+        this.load.atlasXML('target_1_atlas', 'Game item img/các loại kem/1 tầng/cream_atlas.png', 'Game item img/các loại kem/1 tầng/cream_atlas.xml');
+        this.load.atlasXML('target_2_atlas', 'Game item img/các loại kem/2 tầng/cream2.png', 'Game item img/các loại kem/2 tầng/cream2.xml');
 
-        // Load Toppings (Lọ và Phễu)
-        this.load.image('jar-cone', 'Game item img/bánh vụn trang trí/bánh ốc quế.png');
-        this.load.image('item-cone', 'Game item img/bánh vụn trang trí/ốc quế đơn.png');
-        this.load.image('jar-cherry', 'Game item img/bánh vụn trang trí/anh đào.png');
-        this.load.image('jar-sprinkle', 'Game item img/bánh vụn trang trí/cớm.png');
-        this.load.image('jar-peanut', 'Game item img/bánh vụn trang trí/đậu phộng.png');
-
-        // Load Lớp Kem Đơn (Ice Cream Bases)
-        this.load.image('base-vanilla', 'Game item img/Lớp kem đơn/Vani.png');
-        this.load.image('base-strawberry', 'Game item img/Lớp kem đơn/dâu.png');
-        this.load.image('base-chocolate', 'Game item img/Lớp kem đơn/socola.png');
-        this.load.image('base-mint', 'Game item img/Lớp kem đơn/bạc hà.png');
-        this.load.image('base-orange', 'Game item img/Lớp kem đơn/cam.png');
-
-        // Load Cốc Cà Phê
-        this.load.image('cup-empty', 'Game item img/Đồ uống/Cốc cà phê rỗng.png');
-        this.load.image('cup-full', 'Game item img/Đồ uống/Cốc cà phê đầy.png');
-
-        // Load Nhân vật Khách Hàng (Mỗi khách 2 frame)
-        this.load.image('char2-1', 'Game item img/Char/Char 2/img1.png');
-        this.load.image('char2-2', 'Game item img/Char/Char 2/img2.png');
-        this.load.image('char3-1', 'Game item img/Char/Char 3/img1.png');
-        this.load.image('char3-2', 'Game item img/Char/Char 3/img2.png');
-        this.load.image('char4-1', 'Game item img/Char/Char 4/img1.png');
-        this.load.image('char4-2', 'Game item img/Char/Char 4/img2.png');
-
-        // Load Bóng Chat
-        this.load.image('bubble-1', 'Game item img/Char/Bóng chat/Bóng chat 1.png');
-        this.load.image('bubble-2', 'Game item img/Char/Bóng chat/Bóng chat 2.png');
-
-        // Load một số icon mẫu món ăn để đưa vào Bóng chat yêu cầu
-        // 1 Tầng
-        this.load.image('target-mint', 'Game item img/các loại kem/1 tầng/kem ốc quế bạc hà.png');
-        this.load.image('target-orange-cherry', 'Game item img/các loại kem/1 tầng/kem ốc quế cam anh đào.png');
-        this.load.image('target-orange', 'Game item img/các loại kem/1 tầng/kem ốc quế cam.png');
-        this.load.image('target-strawberry', 'Game item img/các loại kem/1 tầng/kem ốc quế dâu.png');
-        this.load.image('target-chocolate-peanut', 'Game item img/các loại kem/1 tầng/kem ốc quế socola đậu phộng.png');
-        this.load.image('target-chocolate', 'Game item img/các loại kem/1 tầng/kem ốc quế socola.png');
-        this.load.image('target-vanilla', 'Game item img/các loại kem/1 tầng/kem ốc quế vani.png');
-
-        // 2 Tầng
-        this.load.image('target-strawberry-chocolate', 'Game item img/các loại kem/2 tầng/kem ốc quế dâu socola.png');
-        this.load.image('target-strawberry-vanilla', 'Game item img/các loại kem/2 tầng/kem ốc quế dâu vani.png');
-        this.load.image('target-chocolate-vanilla', 'Game item img/các loại kem/2 tầng/kem ốc quế socola vani.png');
-        this.load.image('target-vanilla-mint', 'Game item img/các loại kem/2 tầng/kem ốc quế vani bạc hà.png');
-        this.load.image('target-vanilla-strawberry', 'Game item img/các loại kem/2 tầng/kem ốc quế vani dâu.png');
-
-        // Load Audio (Nhạc nền & SFX)
+        // 2. ẢNH NỀN
+        this.load.atlasXML('bg_atlas', 'Game item img/Background cửa hàng/background-0.png', 'Game item img/Background cửa hàng/background_atlas.xml');
+        
+        // 3. ÂM THANH (không bao gồm video vì có thể block loading)
         this.load.audio('bgm-theme', 'Game sound/theme tiệm kem pixel.mp3');
         this.load.audio('sfx-pour', 'Game sound/Coffee Pouring into a Cup.mp3');
         this.load.audio('sfx-bubble', 'Game sound/bong bóng chat.mp3');
@@ -120,15 +66,17 @@ export default class BootScene extends Phaser.Scene {
         this.load.audio('sfx-money', 'Game sound/money.mp3');
         this.load.audio('sfx-win', 'Game sound/win.mp3');
 
-        // Load Icon bổ sung
-        this.load.image('icon-reward', 'Game item img/icon/nhận thưởng.png');
-
-        // Load Video (Lưu ý: 33MB có thể gây loading lâu)
+        // NẠP VIDEO (Giai đoạn 5.5)
         this.load.video('reward-video', 'video/video.mp4');
+
+        // GHI CHÚ: Video (video.mp4) được load riêng trong VideoScene để tránh block.
     }
 
     create() {
-        // Sau khi load xong, chuyển qua Menu
+        // Khởi tạo trạng thái game toàn cục
+        if (!this.registry.has('gold')) this.registry.set('gold', 0);
+        if (!this.registry.has('inventory')) this.registry.set('inventory', []);
+
         this.scene.start('MenuScene');
     }
 }

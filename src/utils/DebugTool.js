@@ -1,4 +1,8 @@
+import LayoutUtils from './LayoutUtils.js';
+
 export default class DebugTool {
+    static isDebugLocked = false;
+
     /**
      * Khởi tạo bộ công cụ Debug toàn năng trên bất kỳ Scene nào.
      * @param {Phaser.Scene} scene 
@@ -7,53 +11,109 @@ export default class DebugTool {
         if (scene.__debugInitialized) return;
         scene.__debugInitialized = true;
 
-        // Bắt sự kiện kéo thả chuột
-        scene.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+        // 1. NÚT KHÓA DEBUG (Góc trên phải)
+        const lockBtn = scene.add.text(scene.cameras.main.width - 160, 16, '🔓 DEBUG: OFF', {
+            font: 'bold 15px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#c0392b',
+            padding: { x: 10, y: 6 }
+        }).setScrollFactor(0).setDepth(10001).setInteractive();
+
+        lockBtn.on('pointerdown', () => {
+            DebugTool.isDebugLocked = !DebugTool.isDebugLocked;
+            const on = DebugTool.isDebugLocked;
+            lockBtn.setText(on ? '🔒 DEBUG: ON' : '🔓 DEBUG: OFF');
+            lockBtn.setBackgroundColor(on ? '#27ae60' : '#c0392b');
+
+            // Hiện/ẩn tất cả debug labels trong scene
+            scene.children.each(child => {
+                if (child.__isDebugLabel) child.setVisible(on);
+            });
+        });
+
+        // 2. NÚT COPY ALL
+        const copyAllBtn = scene.add.text(scene.cameras.main.width - 160, 52, '📋 COPY ALL', {
+            font: 'bold 15px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#2980b9',
+            padding: { x: 10, y: 6 }
+        }).setScrollFactor(0).setDepth(10001).setInteractive();
+
+        copyAllBtn.on('pointerdown', () => {
+            let lines = [];
+            scene.children.each(child => {
+                if (child.__isDebugLabel && child.__debugOwner) {
+                    const obj = child.__debugOwner;
+                    const norm = LayoutUtils.getNorm(scene, obj.x, obj.y, obj.data.get('baseW'), obj.data.get('baseH'));
+                    lines.push(`${obj.data.get('debugName')}: NX:${norm.nx}, NY:${norm.ny}, S:${obj.scaleX.toFixed(3)}, R:${Math.round(obj.angle)}`);
+                }
+            });
+            navigator.clipboard.writeText(lines.join('\n'));
+            copyAllBtn.setBackgroundColor('#8e44ad');
+            setTimeout(() => copyAllBtn.setBackgroundColor('#2980b9'), 800);
+        });
+
+        // 3. LOGIC KÉO THẢ (DRAG)
+        scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
+            if (!DebugTool.isDebugLocked) return;
             gameObject.x = dragX;
             gameObject.y = dragY;
-            if (gameObject.debugText) {
-                gameObject.debugText.x = dragX;
-                gameObject.debugText.y = dragY - (gameObject.displayHeight / 2 * gameObject.scaleY) - 15;
-                gameObject.debugText.setText(gameObject.data.get('debugName') + ' -> X: ' + Math.round(dragX) + ', Y: ' + Math.round(dragY) + ' | Tỉ lệ: ' + gameObject.scaleX.toFixed(2));
-            }
+            DebugTool.refreshLabel(scene, gameObject);
         });
 
-        // Bắt sự kiện lăn chuột để phóng to thu nhỏ
-        scene.input.on('wheel', function (pointer, gameObjects, deltaX, deltaY, deltaZ) {
-            if (gameObjects.length > 0) {
-                let obj = gameObjects[0];
-                if (!obj.data || !obj.data.get('debugName')) return; // Bộ lọc chỉ zoom các item được ghim
-                
-                let change = deltaY > 0 ? -0.01 : 0.01; 
-                obj.setScale(Math.max(0.01, obj.scaleX + change));
-                
-                if (obj.debugText) {
-                    obj.debugText.y = obj.y - (obj.displayHeight / 2 * obj.scaleY) - 15;
-                    obj.debugText.setText(obj.data.get('debugName') + ' -> X: ' + Math.round(obj.x) + ', Y: ' + Math.round(obj.y) + ' | Tỉ lệ: ' + obj.scaleX.toFixed(2));
-                }
+        // 4. LOGIC ZOOM & XOAY (SCROLL)
+        scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+            if (!DebugTool.isDebugLocked || gameObjects.length === 0) return;
+            let obj = gameObjects[0];
+            if (!obj.data || !obj.data.get('debugName')) return;
+
+            if (pointer.event.shiftKey) {
+                obj.angle += deltaY > 0 ? -5 : 5;
+            } else {
+                obj.setScale(Math.max(0.01, obj.scaleX + (deltaY > 0 ? -0.01 : 0.01)));
             }
+            DebugTool.refreshLabel(scene, obj);
         });
 
-        // Tiêm hàm Bật/Tắt debug vào scene
-        scene.enableDebug = (obj, name) => {
-            scene.input.setDraggable(obj.setInteractive()); // Bật kéo thả
+        // 5. TIÊM HÀM enableDebug
+        scene.enableDebug = (obj, name, baseW = 1024, baseH = 768) => {
+            scene.input.setDraggable(obj.setInteractive());
             obj.setData('debugName', name);
-            
-            // Vẽ thẻ tên tọa độ đỏ rực trên đầu
-            obj.debugText = scene.add.text(obj.x, obj.y - (obj.displayHeight / 2 * obj.scaleY) - 15, 
-                name + ' -> X: ' + Math.round(obj.x) + ', Y: ' + Math.round(obj.y) + ' | Tỉ lệ: ' + obj.scaleX.toFixed(2), 
-                { font: '14px Arial', fill: '#ff0000', backgroundColor: '#FFFFFF', padding: { x: 3, y: 3 } }).setOrigin(0.5);
-            obj.debugText.setDepth(9999);
+            obj.setData('baseW', baseW);
+            obj.setData('baseH', baseH);
 
-            // Bấm vào văn bản đỏ sẽ Copy lẻ đối tượng đó thay vì Copy tất cả
-            obj.debugText.setInteractive();
-            obj.debugText.on('pointerdown', () => {
-                let txt = `${name}: X: ${Math.round(obj.x)}, Y: ${Math.round(obj.y)} | Tỉ lệ: ${obj.scaleX.toFixed(2)}`;
+            const label = scene.add.text(obj.x, obj.y - 20, '', {
+                font: '10px Courier New', fill: '#ff0000', backgroundColor: 'rgba(255,255,255,0.9)', padding: { x: 3, y: 2 }
+            }).setOrigin(0.5, 1).setDepth(10000).setVisible(false).setInteractive();
+
+            label.__isDebugLabel = true;
+            label.__debugOwner = obj;
+            obj.__debugLabel = label;
+
+            label.on('pointerdown', () => {
+                const norm = LayoutUtils.getNorm(scene, obj.x, obj.y, obj.data.get('baseW'), obj.data.get('baseH'));
+                const txt = `${name}: NX:${norm.nx}, NY:${norm.ny}, S:${obj.scaleX.toFixed(3)}, R:${Math.round(obj.angle)}`;
                 navigator.clipboard.writeText(txt);
-                obj.debugText.setColor('#00ff00');
-                setTimeout(() => obj.debugText.setColor('#ff0000'), 500);
+                label.setColor('#00cc00');
+                label.setText('✓ COPIED!');
+                setTimeout(() => {
+                    label.setColor('#ff0000');
+                    DebugTool.refreshLabel(scene, obj);
+                }, 700);
             });
-            return obj; // Trả về để có thể viết gọn dây chuyền
+
+            DebugTool.refreshLabel(scene, obj);
+            return obj;
         };
+    }
+
+    static refreshLabel(scene, obj) {
+        const label = obj.__debugLabel;
+        if (!label) return;
+        const norm = LayoutUtils.getNorm(scene, obj.x, obj.y, obj.data.get('baseW'), obj.data.get('baseH'));
+        label.x = obj.x;
+        label.y = obj.y - Math.abs(obj.displayHeight * obj.scaleY) / 2 - 4;
+        label.setText(`${obj.data.get('debugName')}\nNX:${norm.nx} NY:${norm.ny}\nS:${obj.scaleX.toFixed(3)} R:${Math.round(obj.angle)}°`);
+        label.setVisible(DebugTool.isDebugLocked);
     }
 }

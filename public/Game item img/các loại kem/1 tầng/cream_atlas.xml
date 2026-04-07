@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="cream_atlas.png">
+    <SubTexture name="cone_mint" x="2" y="1776" width="185" height="316"/>
+    <SubTexture name="cone_orange_cherry" x="2" y="2" width="201" height="431"/>
+    <SubTexture name="cone_orange" x="2" y="814" width="189" height="317"/>
+    <SubTexture name="cone_strawberry" x="2" y="2096" width="184" height="316"/>
+    <SubTexture name="cone_chocolate_peanut" x="2" y="437" width="198" height="373"/>
+    <SubTexture name="cone_chocolate" x="2" y="1135" width="188" height="316"/>
+    <SubTexture name="cone_vanilla" x="2" y="1455" width="185" height="317"/>
+</TextureAtlas>

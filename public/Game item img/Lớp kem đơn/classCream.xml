@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with TexturePacker https://www.codeandweb.com/texturepacker -->
+<!-- $TexturePacker:SmartUpdate:d8de6ca129f2867bac0c08cbc8f8f80f:fa3e7c7c9f9c003c9ff6e50cd7bf6a37:824a4f0881db6da61ba28ca1ea89b4fd$ -->
+<!--Format:
+n  => name of the sprite
+x  => sprite x pos in texture
+y  => sprite y pos in texture
+w  => sprite width (may be trimmed)
+h  => sprite height (may be trimmed)
+pX => x pos of the pivot point (relative to sprite width)
+pY => y pos of the pivot point (relative to sprite height)
+oX => sprite's x-corner offset (only available if trimmed)
+oY => sprite's y-corner offset (only available if trimmed)
+oW => sprite's original width (only available if trimmed)
+oH => sprite's original height (only available if trimmed)
+r => 'y' only set if sprite is rotated
+with polygon mode enabled:
+vertices   => points in sprite coordinate system (x0,y0,x1,y1,x2,y2, ...)
+verticesUV => points in sheet coordinate system (x0,y0,x1,y1,x2,y2, ...)
+triangles  => sprite triangulation, 3 vertex indices per triangle
+-->
+<TextureAtlas imagePath="classCream.png" width="127" height="532">
+    <sprite n="bạc hà.png" x="2" y="2" w="123" h="100"/>
+    <sprite n="cam.png" x="2" y="106" w="122" h="105"/>
+    <sprite n="dâu.png" x="2" y="318" w="119" h="105"/>
+    <sprite n="socola.png" x="2" y="215" w="122" h="99"/>
+    <sprite n="Vani.png" x="2" y="427" w="119" h="103"/>
+</TextureAtlas>

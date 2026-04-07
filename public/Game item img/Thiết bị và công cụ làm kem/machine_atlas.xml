@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="machine_atlas.png">
+    <SubTexture name="machine_coffee_empty" x="2" y="1101" width="1311" height="989" rotated="true" />
+    <SubTexture name="machine_drink_front" x="998" y="2094" width="911" height="1232" />
+    <SubTexture name="machine_drink" x="2" y="2094" width="992" height="1289" />
+    <SubTexture name="machine_icecream" x="2" y="2" width="1703" height="1095" />
+</TextureAtlas>

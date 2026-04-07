@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import DebugTool from '../utils/DebugTool';
+import LayoutUtils from '../utils/LayoutUtils';
 import Tooltip from '../utils/Tooltip';
 import UIFX from '../utils/UIFX';
 
@@ -9,156 +9,124 @@ export default class DrinkStationScene extends Phaser.Scene {
     }
 
     create() {
-        DebugTool.init(this);
-        // Nền bề mặt
-        let surfaceBg = this.add.image(512, 384, 'ui-surface');
-        surfaceBg.setScale(Math.max(1024 / surfaceBg.width, 768 / surfaceBg.height));
+        // Hệ quy chiếu ảnh mặt bàn (2760x1504)
+        const surfaceBase = { w: 2760, h: 1504 };
+        const bgPos = LayoutUtils.getPos(this, 0.5, 0.5, surfaceBase.w, surfaceBase.h);
+        // bgPos.scale ≈ 0.3565 tại viewport 984x705
 
-        // Nút quay lại
-        let backBtn = this.add.image(70, 70, 'btn-back').setInteractive();
-        backBtn.setScale(0.15); // Tỉ lệ ướm chừng chuẩn xác
-        backBtn.setDepth(1000);
+        let surfaceBg = this.add.image(bgPos.x, bgPos.y, 'bg_atlas', 'ui_surface');
+        surfaceBg.setScale(bgPos.scale);
+
+        // === ĐIỀU HƯỚNG (UI base 1024x768) ===
+        // uiMetrics.scale ≈ 0.918 tại viewport 984x705
+        const uiBase = { w: 1024, h: 768 };
+        const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
+
+        // BackBtn: NX:0.084, NY:0.220, S:0.135 → coeff = 0.135/0.918 ≈ 0.147
+        const backPos = LayoutUtils.getPos(this, 0.084, 0.220, uiBase.w, uiBase.h);
+        let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
+        backBtn.setScale(0.147 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
         backBtn.on('pointerdown', () => {
-            this.time.delayedCall(200, () => {
-                this.scene.stop();
-                this.scene.resume('GameScene');
-            });
+            this.scene.stop();
+            this.scene.resume('GameScene');
         });
-        backBtn.on('pointerover', () => backBtn.setTint(0xdddddd));
-        backBtn.on('pointerout', () => backBtn.clearTint());
-        Tooltip.bind(this, backBtn, "Vùng Sảnh Chính");
 
-        // ---------------------------------------------------------
-        // KHU VỰC SẮP XẾP GIAO DIỆN CHUẨN TỌA ĐỘ
-        // ---------------------------------------------------------
-        // Ban đầu máy không có cốc
-        let dMachine = this.add.image(515, 353, 'drink-machine-empty').setInteractive();
-        dMachine.setScale(0.41);
+        // Balo: NX:0.874, NY:0.679, S:0.096 → coeff = 0.096/0.918 ≈ 0.105
+        const baloPos = LayoutUtils.getPos(this, 0.874, 0.679, uiBase.w, uiBase.h);
+        let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
+        baloUI.setScale(0.105 * uiMetrics.scale).setDepth(2000);
+        UIFX.addClickBounce(this, baloUI, true);
+
+        // === MÁY PHA & HỨ (2760x1504 base) ===
+
+        // CoffeeMachine: NX:0.520, NY:0.480, S:0.281, R:-90 → coeff = 0.281/0.3565 ≈ 0.788
+        const dMachinePos = LayoutUtils.getPos(this, 0.520, 0.480, surfaceBase.w, surfaceBase.h);
+        let dMachine = this.add.sprite(dMachinePos.x, dMachinePos.y, 'machine_atlas', 'machine_coffee_empty').setInteractive();
+        dMachine.setScale(0.788 * bgPos.scale).setAngle(-90);
         UIFX.addClickBounce(this, dMachine);
-        Tooltip.bind(this, dMachine, "Máy Pha Cà Phê");
 
-        let cupStack = this.add.image(169, 434, 'cup-empty').setInteractive();
-        cupStack.setScale(0.17);
+        // CupStack: NX:0.132, NY:0.587, S:0.119 → coeff = 0.119/0.3565 ≈ 0.334
+        const cupSPos = LayoutUtils.getPos(this, 0.132, 0.587, surfaceBase.w, surfaceBase.h);
+        let cupStack = this.add.sprite(cupSPos.x, cupSPos.y, 'drink_atlas', 'cup_empty').setInteractive();
+        cupStack.setScale(0.334 * bgPos.scale);
         UIFX.addClickBounce(this, cupStack);
-        Tooltip.bind(this, cupStack, "Lấy cốc rỗng");
 
         // =========================================================
-        // LOGIC LÀM ĐỒ UỐNG (CÀ PHÊ)
+        // LOGIC PHA ĐỒ UỐNG (Giai đoạn 4)
         // =========================================================
-        
-        let currentCupItem = null; // Trạng thái cốc hiện tại nằm trên mâm máy
-        let isBrewing = false; // Máy có đang chạy hay không
+        this.activeCup = null;
+        this.isBrewing = false;
 
-        // Tọa độ khay đỡ cốc của máy pha cà phê (Canh chỉnh lại cho vừa với vòi)
-        const TRAY_X = 515;
-        const TRAY_Y = 480; 
+        // Điểm đặt cốc (CUP_SPOT) - NX:0.525, NY:0.62 (base 2760x1504)
+        const cupPos = LayoutUtils.getPos(this, 0.500, 0.62, 2760, 1504);
 
-        // 1. Nhấn vào chồng cốc rỗng -> Sinh cốc đặt vào máy
+        // 1. LẤY CỐC RỖNG
         cupStack.on('pointerdown', () => {
-            // Chỉ thả cốc vào khi máy đang trống và không pha
-            if (!currentCupItem && !isBrewing) {
-                // Đổi texture máy thành loại ĐÃ ĐÍNH KÈM CỐC TRONG ẢNH
-                dMachine.setTexture('drink-machine-close');
-                
-                // Mẹo: Vẫn cấp 1 object ảo để vượt qua bài test "Có cốc chưa" của hàm sau
-                currentCupItem = { texture: { key: 'cup-empty' }, destroy: () => {} }; 
-            }
+            if (this.activeCup) return;
+            this.sound.play('sfx-pick');
+            this.activeCup = this.add.sprite(cupPos.x, cupPos.y, 'drink_atlas', 'cup_empty');
+            this.activeCup.setScale(0.334 * bgPos.scale).setDepth(15);
+            this.activeCup.isFull = false;
         });
-        
-        // Hover cho trực quan
-        cupStack.on('pointerover', () => cupStack.setTint(0xcccccc));
-        cupStack.on('pointerout', () => cupStack.clearTint());
 
-        // Hover cho trực quan
-        dMachine.on('pointerover', () => dMachine.setTint(0xcccccc));
-        dMachine.on('pointerout', () => dMachine.clearTint());
-
-        // 2. Nhấn vào thân Máy Chế Cà Phê -> Róttttttt!
-        dMachine.on('pointerdown', (pointer) => {
-            // Máy chỉ pha khi thỏa mãn: Đang bật + CÓ CỐC RỖNG bên trong
-            if (!currentCupItem || currentCupItem.texture.key !== 'cup-empty') {
-                if (!isBrewing) {
-                    // Cảnh báo nếu quên đặt cốc rỗng
-                    let errTxt = this.add.text(pointer.x, pointer.y - 40, 'Bạn chưa đặt cốc rỗng!', { 
-                        font: 'bold 22px "Courier New", monospace', fill: '#ff0000', backgroundColor: '#ffffff', padding: {x: 8, y: 5} 
-                    }).setOrigin(0.5);
-                    errTxt.setDepth(9999);
-                    this.tweens.add({
-                        targets: errTxt,
-                        y: errTxt.y - 60,
-                        alpha: 0,
-                        duration: 1800,
-                        onComplete: () => errTxt.destroy()
-                    });
-                }
-                return;
-            }
-
-            if (!isBrewing) {
-                isBrewing = true;
+        // 2. VẬN HÀNH MÁY PHA
+        dMachine.on('pointerdown', () => {
+            if (this.activeCup && !this.activeCup.isFull && !this.isBrewing) {
+                this.isBrewing = true;
+                this.sound.play('sfx-pour');
                 
-                // Mở tiếng rót Cà phê
-                let pourSound = this.sound.add('sfx-pour');
-                pourSound.play();
+                let brewTxt = this.add.text(dMachine.x, dMachine.y - 120, 'Đang pha...', {
+                    font: 'bold 24px Arial', fill: '#ffffff', backgroundColor: '#804000', padding: {x:5, y:5}
+                }).setOrigin(0.5).setDepth(2100);
 
-                // Hiển thị trạng thái máy đang kêu "Rè rè..."
-                let brewingText = this.add.text(TRAY_X, TRAY_Y - 80, 'Brewing...', { 
-                    font: 'bold 22px "Courier New", monospace', fill: '#5c3a21', backgroundColor: '#ffffff' 
-                }).setOrigin(0.5);
+                // Rung máy nhẹ khi đang pha
+                this.tweens.add({ targets: dMachine, x: dMachine.x + 2, yoyo: true, repeat: 15, duration: 100 });
 
-                // Lắp bộ hẹn giờ 3 giây (3000ms) để rót xong
                 this.time.delayedCall(3000, () => {
-                    pourSound.stop(); // Cúp âm thanh khi đầy
-
-                    if (currentCupItem) {
-                        currentCupItem.destroy(); // Hủy cốc rỗng (ảo)
-                        
-                        // Đổi máy pha về trạng thái Xả rỗng cốc
-                        dMachine.setTexture('drink-machine-empty');
-                        
-                        // Đè ảnh cốc đầy lên mâm đúng theo yêu cầu
-                        currentCupItem = this.add.image(TRAY_X, TRAY_Y, 'cup-full'); 
-                        currentCupItem.setScale(0.17);
+                    if (this.activeCup) {
+                        this.activeCup.setFrame('cup_full');
+                        this.activeCup.isFull = true;
+                        brewTxt.setText('Xong!');
+                        this.time.delayedCall(1000, () => brewTxt.destroy());
                     }
-                    brewingText.destroy(); // Tắt dòng chữ
-                    isBrewing = false; // Trả lại trạng thái nghỉ cho máy
+                    this.isBrewing = false;
                 });
+            } else if (!this.activeCup) {
+                 this.showErrorText(dMachine.x, dMachine.y, 'Chưa có cốc!');
             }
         });
 
-        // =========================================================
-        // BALO - GÓI HÀNG
-        // =========================================================
-        let balo = this.add.image(850, 600, 'icon-balo').setInteractive();
-        balo.setScale(0.15);
-        UIFX.addClickBounce(this, balo, true);
-        Tooltip.bind(this, balo, "Bỏ vào Hành Trang (Balo)");
-
-        // Hiệu ứng hover Balo
-        balo.on('pointerover', () => balo.setTint(0xdddddd));
-        balo.on('pointerout', () => balo.clearTint());
-
-        // Đóng gói đồ ăn
-        balo.on('pointerdown', () => {
-            this.sound.play('sfx-balo'); // Âm thanh mở túi balo
-            
-            if (currentCupItem && currentCupItem.texture.key === 'cup-full') {
-                // Đủ điều kiện lấy Cà Phê
+        // 3. ĐÓNG GÓI VÀO BALO
+        baloUI.on('pointerdown', () => {
+            if (this.activeCup && this.activeCup.isFull) {
+                this.sound.play('sfx-balo');
+                
+                // Lưu vào Inventory
                 let inv = this.registry.get('inventory') || [];
                 inv.push('cup-full');
                 this.registry.set('inventory', inv);
-                
-                currentCupItem.destroy();
-                currentCupItem = null;
 
-                let notifyTxt = this.add.text(balo.x, balo.y - 70, 'Đã cất Cà Phê!', {font:'bold 24px Arial', fill:'#00aa00', backgroundColor:'#ffffff'}).setOrigin(0.5);
-                this.tweens.add({ targets: notifyTxt, y: notifyTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => notifyTxt.destroy() });
-            } else if (currentCupItem && currentCupItem.texture.key === 'cup-empty') {
-                // Báo lỗi: Đồ uống chưa rót
-                let notifyTxt = this.add.text(balo.x, balo.y - 70, 'Cốc rỗng!', {font:'bold 24px Arial', fill:'#ff0000', backgroundColor:'#ffffff'}).setOrigin(0.5);
-                this.tweens.add({ targets: notifyTxt, y: notifyTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => notifyTxt.destroy() });
+                // Xóa cốc
+                this.activeCup.destroy();
+                this.activeCup = null;
+
+                let okTxt = this.add.text(baloUI.x, baloUI.y - 50, 'Đã cất!', {
+                    font: 'bold 24px Arial', fill: '#00aa00', backgroundColor: '#ffffff', padding: {x:5, y:5}
+                }).setOrigin(0.5).setDepth(2100);
+                this.tweens.add({ targets: okTxt, y: okTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => okTxt.destroy() });
+            } else {
+                this.showErrorText(baloUI.x, baloUI.y, 'Cốc chưa đầy!');
             }
         });
+
+        this.scale.once('resize', () => this.scene.restart());
+    }
+
+    showErrorText(x, y, message) {
+        let errTxt = this.add.text(x, y - 50, message, {
+            font: 'bold 24px Arial', fill: 'red', backgroundColor: '#ffffff', padding: {x:5, y:5}
+        }).setOrigin(0.5).setDepth(9000);
+        this.tweens.add({ targets: errTxt, y: errTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => errTxt.destroy() });
     }
 }
