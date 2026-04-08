@@ -40,3 +40,38 @@ const config = {
 };
 
 const game = new Phaser.Game(config);
+
+// Xử lý tối ưu cho Mobile: Tắt tiếng và tạm dừng Video khi thu nhỏ/chạy nền
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Tạm tắt toàn bộ âm thanh
+        if (game.sound) game.sound.mute = true;
+        
+        // Dừng các video đang chạy
+        game.scene.scenes.forEach(scene => {
+            if (scene.scene.isActive()) {
+                scene.children.list.forEach(child => {
+                    if (child.type === 'Video' && child.isPlaying) {
+                        child.pause();
+                        child.setData('wasPlayingBeforeBlur', true);
+                    }
+                });
+            }
+        });
+    } else {
+        // Bật lại âm thanh
+        if (game.sound) game.sound.mute = false;
+        
+        // Tiếp tục phát video
+        game.scene.scenes.forEach(scene => {
+            if (scene.scene.isActive()) {
+                scene.children.list.forEach(child => {
+                    if (child.type === 'Video' && child.getData('wasPlayingBeforeBlur')) {
+                        child.play();
+                        child.setData('wasPlayingBeforeBlur', false);
+                    }
+                });
+            }
+        });
+    }
+});

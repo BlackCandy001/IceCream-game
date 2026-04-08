@@ -42,10 +42,10 @@ export default class RecipeScene extends Phaser.Scene {
             lineSpacing: 15
         }).setOrigin(0.5).setDepth(120);
 
-        // 3. NÚT QUAY LẠI (Đồng bộ tọa độ chuẩn 0.067, 0.225)
-        const closePos = LayoutUtils.getPos(this, 0.067, 0.225, uiBase.w, uiBase.h);
+        // 3. NÚT QUAY LẠI
+        const closePos = LayoutUtils.getPos(this, -0.080, 0.123, uiBase.w, uiBase.h);
         let closeBtn = this.add.sprite(closePos.x, closePos.y, 'icon_atlas', 'back').setInteractive();
-        closeBtn.setScale(0.131 * metrics.scale).setDepth(2000); // Tăng depth để không bị panel che khuất
+        closeBtn.setScale(0.172 * metrics.scale).setDepth(2000); // Tăng depth để không bị panel che khuất
         UIFX.addClickBounce(this, closeBtn);
         closeBtn.on('pointerdown', () => {
              this.scene.stop();

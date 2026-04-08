@@ -28,19 +28,18 @@ export default class IceCreamStationScene extends Phaser.Scene {
         const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
 
         // BackBtn: NX:0.067, NY:0.225, S:0.120 → coeff = 0.120/0.918 ≈ 0.131
-        const backPos = LayoutUtils.getPos(this, 0.067, 0.225, uiBase.w, uiBase.h);
+        const backPos = LayoutUtils.getPos(this, -0.080, 0.123, uiBase.w, uiBase.h);
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
-        backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
+        backBtn.setScale(0.172 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
         backBtn.on('pointerdown', () => {
             this.scene.stop();
             this.scene.resume('GameScene');
         });
 
-        // Balo: NX:0.864, NY:0.212, S:0.070 → coeff = 0.070/0.918 ≈ 0.076
-        const baloPos = LayoutUtils.getPos(this, 0.864, 0.212, uiBase.w, uiBase.h);
+        const baloPos = LayoutUtils.getPos(this, 0.658, 0.167, uiBase.w, uiBase.h);
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
-        baloUI.setScale(0.076 * uiMetrics.scale).setDepth(2000);
+        baloUI.setScale(0.105 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, baloUI, true);
 
         // === LỚP KEM ĐƠN (2760x1504 base) ===

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import LayoutUtils from '../utils/LayoutUtils';
+import UIFX from '../utils/UIFX';
 
 export default class VideoScene extends Phaser.Scene {
     constructor() {
@@ -25,13 +26,49 @@ export default class VideoScene extends Phaser.Scene {
 
         vid.play();
 
-        this.scale.on('resize', () => {
-             this.scene.restart(); 
+        // Thêm nút Quay lại (Back) để skip video
+        const uiBase = { w: 1024, h: 768 };
+        const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
+        
+        // Đồng bộ hoàn toàn tọa độ nút Back với các màn hình khác
+        const backPos = LayoutUtils.getPos(this, -0.080, 0.123, uiBase.w, uiBase.h);
+        let skipBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
+        skipBtn.setScale(0.172 * uiMetrics.scale).setDepth(200).setVisible(false);
+
+        UIFX.addClickBounce(this, skipBtn);
+
+        const onResize = () => {
+             if (this.scene.isActive('VideoScene')) this.scene.restart(); 
+        };
+        this.scale.on('resize', onResize);
+
+        this.events.on('shutdown', () => {
+             this.scale.off('resize', onResize);
+        });
+
+        const returnToMenu = () => {
+            if (this.isExiting) return;
+            this.isExiting = true;
+            this.registry.set('gold', 0); // Reset game state here too
+            this.registry.set('inventory', []);
+            this.scene.start('MenuScene');
+        };
+
+        skipBtn.on('pointerdown', () => {
+            vid.stop(); // Dừng video ngay
+            returnToMenu();
         });
 
         // Khi video kết thúc -> Về Menu
         vid.on('complete', () => {
-            this.scene.start('MenuScene');
+            returnToMenu();
+        });
+
+        // Đồng hồ đếm 5 giây để đánh thức nút Skip
+        this.time.delayedCall(5000, () => {
+             if (this.scene.isActive('VideoScene')) {
+                  skipBtn.setVisible(true);
+             }
         });
     }
 }

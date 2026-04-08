@@ -36,7 +36,7 @@ export default class WinScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // 3. CÁC NÚT ĐIỀU HƯỚNG (Giai đoạn 5.5)
-        const btnGroupY = center.y + 150;
+        const btnGroupY = center.y + 100;
         
         // Nút CHƠI LẠI (Bên trái)
         const restartX = center.x - 120 * uiMetrics.scale;

@@ -23,19 +23,18 @@ export default class DrinkStationScene extends Phaser.Scene {
         const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
 
         // BackBtn: NX:0.084, NY:0.220, S:0.135 → coeff = 0.135/0.918 ≈ 0.147
-        const backPos = LayoutUtils.getPos(this, 0.084, 0.220, uiBase.w, uiBase.h);
+        const backPos = LayoutUtils.getPos(this, -0.080, 0.123, uiBase.w, uiBase.h);
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
-        backBtn.setScale(0.147 * uiMetrics.scale).setDepth(2000);
+        backBtn.setScale(0.172 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
         backBtn.on('pointerdown', () => {
             this.scene.stop();
             this.scene.resume('GameScene');
         });
 
-        // Balo: NX:0.874, NY:0.679, S:0.096 → coeff = 0.096/0.918 ≈ 0.105
-        const baloPos = LayoutUtils.getPos(this, 0.874, 0.679, uiBase.w, uiBase.h);
+        const baloPos = LayoutUtils.getPos(this, 0.986, 0.766, uiBase.w, uiBase.h);
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
-        baloUI.setScale(0.105 * uiMetrics.scale).setDepth(2000);
+        baloUI.setScale(0.114 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, baloUI, true);
 
         // === MÁY PHA & HỨ (2760x1504 base) ===

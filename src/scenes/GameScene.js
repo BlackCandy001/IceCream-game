@@ -35,29 +35,29 @@ export default class GameScene extends Phaser.Scene {
         const uiBase = { w: 1024, h: 768 };
         const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
 
-        const backPos = LayoutUtils.getPos(this, 0.069, 0.229, uiBase.w, uiBase.h);
+        const backPos = LayoutUtils.getPos(this, -0.080, 0.123, uiBase.w, uiBase.h);
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
-        backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
+        backBtn.setScale(0.172 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
         backBtn.on('pointerdown', () => this.scene.start('MenuScene'));
 
-        const goldPos = LayoutUtils.getPos(this, 0.91, 0.21, uiBase.w, uiBase.h);
+        const goldPos = LayoutUtils.getPos(this, 1.078, 0.097, uiBase.w, uiBase.h);
         let goldUI = this.add.sprite(goldPos.x, goldPos.y, 'icon_atlas', 'gold').setInteractive();
-        goldUI.setScale(0.04 * uiMetrics.scale).setDepth(2000);
+        goldUI.setScale(0.080 * uiMetrics.scale).setDepth(2000);
 
-        const baloPos = LayoutUtils.getPos(this, 0.92, 0.80, uiBase.w, uiBase.h);
+        const baloPos = LayoutUtils.getPos(this, 1.101, 0.886, uiBase.w, uiBase.h);
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
-        baloUI.setScale(0.06 * uiMetrics.scale).setDepth(2000);
+        baloUI.setScale(0.085 * uiMetrics.scale).setDepth(2000);
 
-        const bookPos = LayoutUtils.getPos(this, 0.57, 0.36, uiBase.w, uiBase.h);
+        const bookPos = LayoutUtils.getPos(this, 0.603, 0.295, uiBase.w, uiBase.h);
         let bookUI = this.add.sprite(bookPos.x, bookPos.y, 'icon_atlas', 'book').setInteractive();
-        bookUI.setScale(0.05 * uiMetrics.scale).setDepth(2000);
+        bookUI.setScale(0.084 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, bookUI);
         bookUI.on('pointerdown', () => this.enterStation('RecipeScene'));
 
         // 4. TEXT HIỂN THỊ TRẠNG THÁI (Giai đoạn 1)
-        // Gold Text: NX:0.83, NY:0.21 (Bên trái cục Gold)
-        const gTextPos = LayoutUtils.getPos(this, 0.81, 0.21, uiBase.w, uiBase.h);
+        // Gold Text: Đặt bên trái cục Gold (NX: 0.978)
+        const gTextPos = LayoutUtils.getPos(this, 0.978, 0.097, uiBase.w, uiBase.h);
         this.goldText = this.add.text(gTextPos.x, gTextPos.y, `$ ${this.registry.get('gold')}`, {
             font: `bold ${Math.round(20 * uiMetrics.scale)}px Arial`,
             fill: '#006600',
@@ -65,8 +65,8 @@ export default class GameScene extends Phaser.Scene {
             padding: { x: 8, y: 4 }
         }).setOrigin(0.5).setDepth(2000);
 
-        // Balo Text: NX:0.83, NY:0.80 (Bên trái cục Balo)
-        const bTextPos = LayoutUtils.getPos(this, 0.83, 0.80, uiBase.w, uiBase.h);
+        // Balo Text: Đặt bên trái cục Balo (NX: 1.011, NY: 0.886)
+        const bTextPos = LayoutUtils.getPos(this, 1.011, 0.886, uiBase.w, uiBase.h);
         this.baloText = this.add.text(bTextPos.x, bTextPos.y, `x ${this.registry.get('inventory').length}`, {
             font: `bold ${Math.round(20 * uiMetrics.scale)}px Arial`,
             fill: '#333333',
@@ -134,6 +134,8 @@ export default class GameScene extends Phaser.Scene {
                  if (c.bubbleContainer) c.bubbleContainer.setVisible(true);
              });
         });
+
+
     }
 
     enterStation(sceneKey) {
@@ -164,11 +166,12 @@ export default class GameScene extends Phaser.Scene {
         let charNum = Phaser.Math.Between(2, 4);
         let randomOrder = Phaser.Utils.Array.GetRandom(this.availableOrders);
 
-        // Sinh khách hàng ở ngoài mép màn hình
-        let startX = this.cameras.main.width + 200;
+        // Sinh khách hàng ở rìa phải của hình nền tiệm kem (NX: 0.98) để tránh đi từ vùng đen
+        let startX = LayoutUtils.getPos(this, 0.98, 0, shopBase.w, shopBase.h).x;
         let customer = this.add.sprite(startX, spot.y, 'char_atlas', `char_${charNum}_1`);
         customer.setScale(0.469 * shopPos.scale).setDepth(30).setInteractive();
         customer.setFlipX(spot.x < startX);
+        customer.setAlpha(0); // Bắt đầu tàng hình để vào mượt hơn
         
         UIFX.addClickBounce(this, customer, true);
         Tooltip.bind(this, customer, "Click để Giao Món!");
@@ -190,11 +193,14 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
-        // Tween di chuyển vào chỗ đứng
         this.tweens.add({
             targets: customer,
             x: spot.x,
             duration: 3500,
+            onStart: () => {
+                // Fade in trong 0.5s đầu
+                this.tweens.add({ targets: customer, alpha: 1, duration: 500 });
+            },
             onComplete: () => {
                 walkTimer.delay = 500; // Đi chậm lại khi đã đứng vào chỗ
                 this.sound.play('sfx-bubble');
@@ -278,9 +284,11 @@ export default class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(100);
         this.tweens.add({ targets: msgTxt, y: msgTxt.y - 100, alpha: 0, duration: 2000, onComplete: () => msgTxt.destroy() });
 
-        // Rời đi
-        let exitX = this.cameras.main.width + 200;
+        // Rời đi về phía rìa màn hình nền (NX: 0.98)
+        let exitX = LayoutUtils.getPos(this, 0.98, 0, 2816, 1536).x;
         customer.setFlipX(exitX < customer.x);
+        
+        // Bắt đầu đi ra
         this.tweens.add({
             targets: customer,
             x: exitX,
@@ -289,6 +297,14 @@ export default class GameScene extends Phaser.Scene {
                 this.customers = this.customers.filter(c => c !== customer);
                 customer.destroy();
             }
+        });
+        
+        // Mờ dần trong 0.5s cuối trước khi biến mất hoàn toàn
+        this.tweens.add({
+            targets: customer,
+            alpha: 0,
+            delay: 3000,
+            duration: 500
         });
     }
 
