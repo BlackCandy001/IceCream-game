@@ -1,6 +1,6 @@
 {
   "name": "icecream-game",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pixel Art Ice Cream Game built with Phaser and Electron",
   "main": "main.js",
   "scripts": {

@@ -32,6 +32,7 @@ export default class IceCreamStationScene extends Phaser.Scene {
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
         backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
+        Tooltip.bind(this, backBtn, "Quay lại Tiệm");
         backBtn.on('pointerdown', () => {
             this.scene.stop();
             this.scene.resume('GameScene');
@@ -42,6 +43,7 @@ export default class IceCreamStationScene extends Phaser.Scene {
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
         baloUI.setScale(0.076 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, baloUI, true);
+        Tooltip.bind(this, baloUI, "Cất vào Balo");
 
         // === LỚP KEM ĐƠN (2760x1504 base) ===
         // coeff chung cho kem: S≈0.601 → 0.601/0.3565 ≈ 1.685
@@ -50,26 +52,31 @@ export default class IceCreamStationScene extends Phaser.Scene {
         const vPos = LayoutUtils.getPos(this, 0.862, 0.338, surfaceBase.w, surfaceBase.h);
         let baseVan = this.add.sprite(vPos.x, vPos.y, 'cream_atlas', 'vanilla').setInteractive();
         baseVan.setScale(1.697 * bgPos.scale);
+        Tooltip.bind(this, baseVan, "Kem Vani");
 
         // StrawberryLayer: NX:0.809, NY:0.541, S:0.625 → coeff = 0.625/0.3565 ≈ 1.753
         const sPos = LayoutUtils.getPos(this, 0.809, 0.541, surfaceBase.w, surfaceBase.h);
         let baseStr = this.add.sprite(sPos.x, sPos.y, 'cream_atlas', 'strawberry').setInteractive();
         baseStr.setScale(1.753 * bgPos.scale);
+        Tooltip.bind(this, baseStr, "Kem Dâu");
 
         // ChocolateLayer: NX:0.915, NY:0.539, S:0.625 → coeff = 0.625/0.3565 ≈ 1.753
         const cPos = LayoutUtils.getPos(this, 0.915, 0.539, surfaceBase.w, surfaceBase.h);
         let baseCho = this.add.sprite(cPos.x, cPos.y, 'cream_atlas', 'chocolate').setInteractive();
         baseCho.setScale(1.753 * bgPos.scale);
+        Tooltip.bind(this, baseCho, "Kem Socola");
 
         // MintLayer: NX:0.810, NY:0.722, S:0.612 → coeff ≈ 1.717
         const mPos = LayoutUtils.getPos(this, 0.810, 0.722, surfaceBase.w, surfaceBase.h);
         let baseMin = this.add.sprite(mPos.x, mPos.y, 'cream_atlas', 'mint').setInteractive();
         baseMin.setScale(1.717 * bgPos.scale);
+        Tooltip.bind(this, baseMin, "Kem Bạc Hà");
 
         // OrangeLayer: NX:0.915, NY:0.720, S:0.601 → coeff ≈ 1.685
         const oPos = LayoutUtils.getPos(this, 0.915, 0.720, surfaceBase.w, surfaceBase.h);
         let baseOrg = this.add.sprite(oPos.x, oPos.y, 'cream_atlas', 'orange').setInteractive();
         baseOrg.setScale(1.685 * bgPos.scale);
+        Tooltip.bind(this, baseOrg, "Kem Cam");
 
         // === TOPPING (2760x1504 base) ===
 
@@ -77,21 +84,25 @@ export default class IceCreamStationScene extends Phaser.Scene {
         const jarCPos = LayoutUtils.getPos(this, 0.160, 0.640, surfaceBase.w, surfaceBase.h);
         let jarCone = this.add.sprite(jarCPos.x, jarCPos.y, 'vun_atlas', 'cone_stack').setInteractive();
         jarCone.setScale(0.645 * bgPos.scale);
+        Tooltip.bind(this, jarCone, "Lấy Ốc Quế");
 
         // JarCherry: NX:0.222, NY:0.267, S:0.378, R:-90 → coeff = 0.378/0.3565 ≈ 1.060
         const jarCHPos = LayoutUtils.getPos(this, 0.222, 0.267, surfaceBase.w, surfaceBase.h);
         let jarCherry = this.add.sprite(jarCHPos.x, jarCHPos.y, 'vun_atlas', 'cherry').setInteractive();
         jarCherry.setScale(1.060 * bgPos.scale).setAngle(-90);
+        Tooltip.bind(this, jarCherry, "Topping Anh Đào");
 
         // JarSprinkle: NX:0.316, NY:0.259, S:0.378, R:-90 → coeff = 1.060
         const jarSPos = LayoutUtils.getPos(this, 0.316, 0.259, surfaceBase.w, surfaceBase.h);
         let jarSpr = this.add.sprite(jarSPos.x, jarSPos.y, 'vun_atlas', 'sprinkle').setInteractive();
         jarSpr.setScale(1.060 * bgPos.scale).setAngle(-90);
+        Tooltip.bind(this, jarSpr, "Topping Kẹo Vụn");
 
         // JarPeanut: NX:0.416, NY:0.262, S:0.378, R:-90 → coeff = 1.060
         const jarPPos = LayoutUtils.getPos(this, 0.416, 0.262, surfaceBase.w, surfaceBase.h);
         let jarPea = this.add.sprite(jarPPos.x, jarPPos.y, 'vun_atlas', 'peanut').setInteractive();
         jarPea.setScale(1.060 * bgPos.scale).setAngle(-90);
+        Tooltip.bind(this, jarPea, "Topping Đậu Phộng");
 
         this.scale.once('resize', () => this.scene.restart());
 

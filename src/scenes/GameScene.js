@@ -23,12 +23,14 @@ export default class GameScene extends Phaser.Scene {
         let icecreamDrawer = this.add.sprite(icePos.x, icePos.y, 'machine_atlas', 'machine_icecream').setInteractive();
         icecreamDrawer.setScale(0.58 * shopBgPos.scale).setDepth(20); 
         UIFX.addClickBounce(this, icecreamDrawer);
+        Tooltip.bind(this, icecreamDrawer, "Làm Kem");
         icecreamDrawer.on('pointerdown', () => this.enterStation('IceCreamStationScene'));
 
         const drinkPos = LayoutUtils.getPos(this, 0.66, 0.56, shopBase.w, shopBase.h);
         let drinkMachine = this.add.sprite(drinkPos.x, drinkPos.y, 'machine_atlas', 'machine_drink_front').setInteractive();
         drinkMachine.setScale(0.39 * shopBgPos.scale).setDepth(20);
         UIFX.addClickBounce(this, drinkMachine);
+        Tooltip.bind(this, drinkMachine, "Pha Nước");
         drinkMachine.on('pointerdown', () => this.enterStation('DrinkStationScene'));
 
         // 3. UI ICONS (Hệ quy chiếu 1024px)
@@ -39,20 +41,24 @@ export default class GameScene extends Phaser.Scene {
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
         backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
+        Tooltip.bind(this, backBtn, "Về Menu");
         backBtn.on('pointerdown', () => this.scene.start('MenuScene'));
 
         const goldPos = LayoutUtils.getPos(this, 0.91, 0.21, uiBase.w, uiBase.h);
         let goldUI = this.add.sprite(goldPos.x, goldPos.y, 'icon_atlas', 'gold').setInteractive();
         goldUI.setScale(0.04 * uiMetrics.scale).setDepth(2000);
+        Tooltip.bind(this, goldUI, "Tiền Thu Nhập");
 
         const baloPos = LayoutUtils.getPos(this, 0.92, 0.80, uiBase.w, uiBase.h);
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
         baloUI.setScale(0.06 * uiMetrics.scale).setDepth(2000);
+        Tooltip.bind(this, baloUI, "Kho Đồ");
 
         const bookPos = LayoutUtils.getPos(this, 0.57, 0.36, uiBase.w, uiBase.h);
         let bookUI = this.add.sprite(bookPos.x, bookPos.y, 'icon_atlas', 'book').setInteractive();
         bookUI.setScale(0.05 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, bookUI);
+        Tooltip.bind(this, bookUI, "Sách Công Thức");
         bookUI.on('pointerdown', () => this.enterStation('RecipeScene'));
 
         // 4. TEXT HIỂN THỊ TRẠNG THÁI (Giai đoạn 1)

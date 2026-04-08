@@ -27,6 +27,7 @@ export default class DrinkStationScene extends Phaser.Scene {
         let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
         backBtn.setScale(0.147 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
+        Tooltip.bind(this, backBtn, "Quay lại Tiệm");
         backBtn.on('pointerdown', () => {
             this.scene.stop();
             this.scene.resume('GameScene');
@@ -37,6 +38,7 @@ export default class DrinkStationScene extends Phaser.Scene {
         let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
         baloUI.setScale(0.105 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, baloUI, true);
+        Tooltip.bind(this, baloUI, "Cất vào Balo");
 
         // === MÁY PHA & HỨ (2760x1504 base) ===
 
@@ -45,12 +47,14 @@ export default class DrinkStationScene extends Phaser.Scene {
         let dMachine = this.add.sprite(dMachinePos.x, dMachinePos.y, 'machine_atlas', 'machine_coffee_empty').setInteractive();
         dMachine.setScale(0.788 * bgPos.scale).setAngle(-90);
         UIFX.addClickBounce(this, dMachine);
+        Tooltip.bind(this, dMachine, "Nhấn để Pha Nước");
 
         // CupStack: NX:0.132, NY:0.587, S:0.119 → coeff = 0.119/0.3565 ≈ 0.334
         const cupSPos = LayoutUtils.getPos(this, 0.132, 0.587, surfaceBase.w, surfaceBase.h);
         let cupStack = this.add.sprite(cupSPos.x, cupSPos.y, 'drink_atlas', 'cup_empty').setInteractive();
         cupStack.setScale(0.334 * bgPos.scale);
         UIFX.addClickBounce(this, cupStack);
+        Tooltip.bind(this, cupStack, "Lấy Cốc");
 
         // =========================================================
         // LOGIC PHA ĐỒ UỐNG (Giai đoạn 4)
