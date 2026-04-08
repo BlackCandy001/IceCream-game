@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import DebugTool from '../utils/DebugTool';
+import LayoutUtils from '../utils/LayoutUtils';
 import Tooltip from '../utils/Tooltip';
 import UIFX from '../utils/UIFX';
 
@@ -9,495 +9,291 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        DebugTool.init(this);
+        const { width, height } = this.cameras.main;
         
-        // Nền quầy kem chính 
-        let bg = this.add.image(512, 384, 'bg-shop');
-        bg.setDisplaySize(1024, 768);
-        bg.setScrollFactor(0);
-        bg.setDepth(0); // Làm nền chính
+        // 1. NỀN TIỆM KEM (Sử dụng chuẩn 2816x1536 từ Atlas)
+        const shopBase = { w: 2816, h: 1536 };
+        const shopBgPos = LayoutUtils.getPos(this, 0.5, 0.5, shopBase.w, shopBase.h);
+        
+        let shopBg = this.add.image(shopBgPos.x, shopBgPos.y, 'bg_atlas', 'bg_shop');
+        shopBg.setScale(shopBgPos.scale).setDepth(0);
 
-        // Nút Quay lại (Về Menu)
-        let backBtn = this.add.image(70, 70, 'btn-back').setInteractive();
-        backBtn.setScale(0.15);
-        UIFX.addClickBounce(this, backBtn);
-        backBtn.on('pointerdown', () => {
-            this.time.delayedCall(200, () => this.scene.start('MenuScene'));
-        });
-        backBtn.on('pointerover', () => backBtn.setTint(0xdddddd));
-        backBtn.on('pointerout', () => backBtn.clearTint());
-        Tooltip.bind(this, backBtn, "Rời khỏi Cửa hàng");
-
-        // -------------------------------------------------------------
-        // CÁC TRẠM LÀM VIỆC (Hitboxes & Hover events)
-        // Đã tinh chỉnh tọa độ chuẩn 100% theo bản mẫu
-        // -------------------------------------------------------------
-
-        // 1. Tủ kem (Trạm 2) - Góc dưới bên trái
-        let icecreamDrawer = this.add.image(165, 420, 'icecream-drawer').setInteractive();
-        icecreamDrawer.setScale(0.20); 
+        // 2. CÁC TRẠM LÀM VIỆC (Hệ quy chiếu 2816px)
+        const icePos = LayoutUtils.getPos(this, 0.17, 0.52, shopBase.w, shopBase.h);
+        let icecreamDrawer = this.add.sprite(icePos.x, icePos.y, 'machine_atlas', 'machine_icecream').setInteractive();
+        icecreamDrawer.setScale(0.58 * shopBgPos.scale).setDepth(20); 
         UIFX.addClickBounce(this, icecreamDrawer);
-        
-        icecreamDrawer.on('pointerdown', () => {
-             this.time.delayedCall(200, () => {
-                 this.scene.pause();
-                 this.scene.launch('IceCreamStationScene');
-             });
-        });
-        // Hiệu ứng phát sáng khi đưa chuột vào
-        icecreamDrawer.on('pointerover', () => icecreamDrawer.setTint(0xdddddd));
-        icecreamDrawer.on('pointerout', () => icecreamDrawer.clearTint());
-        Tooltip.bind(this, icecreamDrawer, "Vào Tủ Làm Kem");
+        icecreamDrawer.on('pointerdown', () => this.enterStation('IceCreamStationScene'));
 
-        // 2. Máy pha đồ uống (Trạm 1) - Trên quầy gỗ bên phải
-        let drinkMachine = this.add.image(667, 465, 'drink-machine-front').setInteractive();
-        drinkMachine.setScale(0.15); 
+        const drinkPos = LayoutUtils.getPos(this, 0.66, 0.56, shopBase.w, shopBase.h);
+        let drinkMachine = this.add.sprite(drinkPos.x, drinkPos.y, 'machine_atlas', 'machine_drink_front').setInteractive();
+        drinkMachine.setScale(0.39 * shopBgPos.scale).setDepth(20);
         UIFX.addClickBounce(this, drinkMachine);
-        
-        drinkMachine.on('pointerdown', () => {
-             this.time.delayedCall(200, () => {
-                 this.scene.pause();
-                 this.scene.launch('DrinkStationScene');
+        drinkMachine.on('pointerdown', () => this.enterStation('DrinkStationScene'));
+
+        // 3. UI ICONS (Hệ quy chiếu 1024px)
+        const uiBase = { w: 1024, h: 768 };
+        const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
+
+        const backPos = LayoutUtils.getPos(this, 0.069, 0.229, uiBase.w, uiBase.h);
+        let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
+        backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
+        UIFX.addClickBounce(this, backBtn);
+        backBtn.on('pointerdown', () => this.scene.start('MenuScene'));
+
+        const goldPos = LayoutUtils.getPos(this, 0.91, 0.21, uiBase.w, uiBase.h);
+        let goldUI = this.add.sprite(goldPos.x, goldPos.y, 'icon_atlas', 'gold').setInteractive();
+        goldUI.setScale(0.04 * uiMetrics.scale).setDepth(2000);
+
+        const baloPos = LayoutUtils.getPos(this, 0.92, 0.80, uiBase.w, uiBase.h);
+        let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
+        baloUI.setScale(0.06 * uiMetrics.scale).setDepth(2000);
+
+        const bookPos = LayoutUtils.getPos(this, 0.57, 0.36, uiBase.w, uiBase.h);
+        let bookUI = this.add.sprite(bookPos.x, bookPos.y, 'icon_atlas', 'book').setInteractive();
+        bookUI.setScale(0.05 * uiMetrics.scale).setDepth(2000);
+        UIFX.addClickBounce(this, bookUI);
+        bookUI.on('pointerdown', () => this.enterStation('RecipeScene'));
+
+        // 4. TEXT HIỂN THỊ TRẠNG THÁI (Giai đoạn 1)
+        // Gold Text: NX:0.83, NY:0.21 (Bên trái cục Gold)
+        const gTextPos = LayoutUtils.getPos(this, 0.81, 0.21, uiBase.w, uiBase.h);
+        this.goldText = this.add.text(gTextPos.x, gTextPos.y, `$ ${this.registry.get('gold')}`, {
+            font: `bold ${Math.round(20 * uiMetrics.scale)}px Arial`,
+            fill: '#006600',
+            backgroundColor: 'rgba(255,255,255,0.7)',
+            padding: { x: 8, y: 4 }
+        }).setOrigin(0.5).setDepth(2000);
+
+        // Balo Text: NX:0.83, NY:0.80 (Bên trái cục Balo)
+        const bTextPos = LayoutUtils.getPos(this, 0.83, 0.80, uiBase.w, uiBase.h);
+        this.baloText = this.add.text(bTextPos.x, bTextPos.y, `x ${this.registry.get('inventory').length}`, {
+            font: `bold ${Math.round(20 * uiMetrics.scale)}px Arial`,
+            fill: '#333333',
+            backgroundColor: 'rgba(255,255,255,0.7)',
+            padding: { x: 8, y: 4 }
+        }).setOrigin(0.5).setDepth(2000);
+
+        // Lắng nghe thay đổi Registry
+        this.registry.events.on('changedata-gold', (parent, value) => {
+            if (this.goldText) this.goldText.setText(`$ ${value}`);
+        });
+        this.registry.events.on('changedata-inventory', (parent, value) => {
+            if (this.baloText) this.baloText.setText(`x ${value.length}`);
+        });
+
+        this.uiGroup = [backBtn, goldUI, baloUI, bookUI, icecreamDrawer, drinkMachine, this.goldText, this.baloText];
+
+        this.scale.once('resize', () => {
+            if (this.scene.isActive('IceCreamStationScene')) this.scene.stop('IceCreamStationScene');
+            if (this.scene.isActive('DrinkStationScene')) this.scene.stop('DrinkStationScene');
+            if (this.scene.isActive('RecipeScene')) this.scene.stop('RecipeScene');
+            this.scene.restart();
+        });
+
+        this.customers = [];
+        // Available Orders mapping (Phù hợp với inventory code và atlas frame)
+        this.availableOrders = [
+            { code: 'cup-full', atlas: 'drink_atlas', frame: 'cup_full', type: 'drink' },
+            // 1 tầng
+            { code: 'target-mint', atlas: 'target_1_atlas', frame: 'cone_mint', type: 'icecream' },
+            { code: 'target-orange', atlas: 'target_1_atlas', frame: 'cone_orange', type: 'icecream' },
+            { code: 'target-strawberry', atlas: 'target_1_atlas', frame: 'cone_strawberry', type: 'icecream' },
+            { code: 'target-chocolate', atlas: 'target_1_atlas', frame: 'cone_chocolate', type: 'icecream' },
+            { code: 'target-vanilla', atlas: 'target_1_atlas', frame: 'cone_vanilla', type: 'icecream' },
+            // 2 tầng
+            { code: 'target-strawberry-chocolate', atlas: 'target_2_atlas', frame: 'kem ốc quế dâu socola.png', type: 'icecream' },
+            { code: 'target-strawberry-vanilla', atlas: 'target_2_atlas', frame: 'kem ốc quế dâu vani.png', type: 'icecream' },
+            { code: 'target-chocolate-vanilla', atlas: 'target_2_atlas', frame: 'kem ốc quế socola vani.png', type: 'icecream' },
+            { code: 'target-vanilla-mint', atlas: 'target_2_atlas', frame: 'kem ốc quế vani bạc hà.png', type: 'icecream' },
+            { code: 'target-vanilla-strawberry', atlas: 'target_2_atlas', frame: 'kem ốc quế vani dâu.png', type: 'icecream' }
+        ];
+
+        // Customer spots: NX:0.158 -> 0.880, NY ~0.77 (base 2816x1536)
+        this.standingSpots = [
+            { x: LayoutUtils.getPos(this, 0.158, 0.774, 2816, 1536).x, y: LayoutUtils.getPos(this, 0.158, 0.774, 2816, 1536).y, occupied: false },
+            { x: LayoutUtils.getPos(this, 0.401, 0.768, 2816, 1536).x, y: LayoutUtils.getPos(this, 0.401, 0.768, 2816, 1536).y, occupied: false },
+            { x: LayoutUtils.getPos(this, 0.640, 0.765, 2816, 1536).x, y: LayoutUtils.getPos(this, 0.640, 0.765, 2816, 1536).y, occupied: false },
+            { x: LayoutUtils.getPos(this, 0.880, 0.762, 2816, 1536).x, y: LayoutUtils.getPos(this, 0.880, 0.762, 2816, 1536).y, occupied: false }
+        ];
+
+        // Spawn timer giống bản cũ (3s - 7s)
+        this.spawnTimer = this.time.addEvent({
+            delay: Phaser.Math.Between(3000, 7000),
+            callback: () => {
+                this.spawnCustomer();
+                this.spawnTimer.delay = Phaser.Math.Between(3000, 7000);
+            },
+            loop: true
+        });
+
+        this.events.on('resume', () => {
+             this.uiGroup.forEach(item => item.setVisible(true));
+             this.customers.forEach(c => {
+                 c.setVisible(true);
+                 if (c.bubbleContainer) c.bubbleContainer.setVisible(true);
              });
         });
-        drinkMachine.on('pointerover', () => drinkMachine.setTint(0xdddddd));
-        drinkMachine.on('pointerout', () => drinkMachine.clearTint());
-        Tooltip.bind(this, drinkMachine, "Vào Quầy Cà Phê");
+    }
 
-        // =========================================================
-        // HỆ THỐNG KHÁCH HÀNG (CUSTOMER SYSTEM)
-        // =========================================================
-        this.customers = [];
-        // 4 vị trí cho khách xếp hàng (Mở rộng từ 3 lên 4)
-        this.standingSpots = [
-            { x: 142, y: 600, occupied: false }, // Gần sát tường trái
-            { x: 387, y: 600, occupied: false }, // Giữa trái
-            { x: 632, y: 600, occupied: false }, // Giữa phải
-            { x: 877, y: 600, occupied: false }  // Gần sát vách đứng máy cafe (Phải)
-        ];
-        
-        this.availableTargets = [
-            'cup-full',
-            // Kem 1 tầng
-            'target-mint', 'target-orange', 
-            'target-strawberry', 'target-chocolate', 'target-vanilla',
-            // Kem 2 tầng
-            'target-strawberry-chocolate', 'target-strawberry-vanilla', 'target-chocolate-vanilla', 
-            'target-vanilla-mint', 'target-vanilla-strawberry'
-        ];
-        this.charList = ['char2', 'char3', 'char4'];
-
-        // Khởi tạo Balo và Gold nếu chưa có
-        if (!this.registry.has('inventory')) {
-            this.registry.set('inventory', []);
-        }
-        if (!this.registry.has('gold')) {
-            this.registry.set('gold', 0);
-        }
-
-        // Hiện Quỹ Tiền (Gold) Góc Phải Trên
-        let goldUI = this.add.image(921, 41, 'icon-gold').setInteractive();
-        goldUI.setScale(0.04); 
-        goldUI.setDepth(1000);
-        Tooltip.bind(this, goldUI, "Quỹ Tiền");
-        
-        let goldBg = this.add.graphics();
-        goldBg.fillStyle(0xffffff, 0.8);
-        goldBg.fillRoundedRect(826, 26, 75, 30, 8);
-        goldBg.setDepth(999);
-
-        this.goldText = this.add.text(831, 29, '$ 0', { font: 'bold 20px "Courier New", monospace', fill: '#006600' }).setDepth(1000);
-
-        this.registry.events.on('changedata-gold', (parent, value) => {
-            if (this.goldText) this.goldText.setText('$ ' + value);
-            // Kiểm tra điều kiện thắng $100
-            if (value >= 100) {
-                this.time.delayedCall(1000, () => this.showWinScreen());
+    enterStation(sceneKey) {
+        // Đợi 150ms để hiệu ứng nảy (Click Bounce) kịp hiển thị trước khi chuyển cảnh
+        this.time.delayedCall(150, () => {
+            // Chỉ ẩn UI icons (Gold, Balo, v.v.) khi vào trạm làm việc
+            if (sceneKey !== 'RecipeScene') {
+                this.uiGroup.forEach(item => item.setVisible(false));
+                this.customers.forEach(c => {
+                    if (c.bubbleContainer) c.bubbleContainer.setVisible(false);
+                });
             }
-        });
-        this.goldText.setText('$ ' + this.registry.get('gold'));
-
-        // Hiện Balo Góc Phải Dưới
-        let baloUI = this.add.image(902, 706, 'icon-balo').setInteractive();
-        baloUI.setScale(0.06);
-        baloUI.setDepth(1000);
-        UIFX.addClickBounce(this, baloUI, true); // True = tắt âm UI cơ bản để dùng âm riêng
-        Tooltip.bind(this, baloUI, "Ví Hành Trang (Balo)");
-        
-        let baloBg = this.add.graphics();
-        baloBg.fillStyle(0xffffff, 0.8);
-        baloBg.fillRoundedRect(833, 692, 45, 30, 8);
-        baloBg.setDepth(999);
-
-        this.baloText = this.add.text(838, 695, 'x 0', { font: 'bold 20px "Courier New", monospace', fill: '#000' }).setDepth(1000);
-
-        // Lắng nghe sự thay đổi của túi đồ (Inventory)
-        this.registry.events.on('changedata-inventory', (parent, value) => {
-            if (this.baloText) this.baloText.setText('x ' + value.length);
-        });
-
-        // Click chơi âm thanh Balo
-        baloUI.on('pointerdown', () => {
-            this.sound.play('sfx-balo');
-        });
-        
-        // Hiện Sổ Tay Công Thức (Tại quầy)
-        let bookUI = this.add.image(573, 241, 'icon-book').setInteractive();
-        bookUI.setScale(0.06); 
-        bookUI.setDepth(1000);
-        UIFX.addClickBounce(this, bookUI, true);
-        Tooltip.bind(this, bookUI, "Đọc Sổ Tay Công Thức");
-        
-        bookUI.on('pointerdown', () => {
-            if (bookUI.data && bookUI.data.get('debugName')) return; // Tạm khóa chức năng Pause nếu đang bật kéo thả
-            this.sound.play('sfx-book'); // Phát âm thanh giở sách
-            this.time.delayedCall(200, () => {
-                this.scene.pause(); // Đóng băng mọi sinh hoạt tại Sảnh!
-                this.scene.launch('RecipeScene'); // Lột tấm ảnh Recipe đè lên
-            });
-        });
-        
-        // Gắn số ban đầu
-        this.baloText.setText('x ' + this.registry.get('inventory').length);
-
-        // Vật phẩm trang trí Tiệm Kem (Cố định tọa độ chuẩn theo thiết kế)
-        this.add.image(431, 483, 'jar-cone').setScale(0.15).setDepth(1);
-        this.add.image(421, 340, 'jar-peanut').setScale(0.20).setDepth(1);
-        this.add.image(433, 260, 'jar-sprinkle').setScale(0.20).setDepth(1);
-        this.add.image(505, 261, 'jar-cherry').setScale(0.20).setDepth(1);
-
-        // Bộ hẹn giờ sinh khách mới (Thời gian 3s - 7s ngẫu nhiên)
-        this.nextSpawn();
-
-        // Cho xuất hiện ngay 1 vị khách đầu tiên sau khi game load 2 giây
-        this.time.delayedCall(2000, this.spawnCustomer, [], this);
-    }
-
-    nextSpawn() {
-        this.time.delayedCall(Phaser.Math.Between(3000, 7000), () => {
-            if (this.isWin) return;
-            this.spawnCustomer();
-            this.nextSpawn();
+            
+            this.scene.pause();
+            this.scene.launch(sceneKey);
         });
     }
 
-    // Hàm gọi sinh ra khách hàng mới từ cửa
     spawnCustomer() {
-        if (this.customers.length >= 4) return; // Nếu quán ngập 4 khách thì nghỉ nhận thêm
+        if (this.customers.length >= 4) return;
+        let spot = this.standingSpots.find(s => !s.occupied);
+        if (!spot) return;
+
+        spot.occupied = true;
+        const shopBase = { w: 2816, h: 1536 };
+        const shopPos = LayoutUtils.getPos(this, 0.5, 0.5, shopBase.w, shopBase.h);
         
-        // Tìm 1 ô xếp hàng còn trống
-        let emptySpotIdx = this.standingSpots.findIndex(spot => !spot.occupied);
-        if (emptySpotIdx === -1) return;
-        
-        let targetSpot = this.standingSpots[emptySpotIdx];
-        targetSpot.occupied = true; // Chiếm chỗ ngay để người sau méo vào
-        
-        // Random Char và random món
-        let randomChar = Phaser.Utils.Array.GetRandom(this.charList); 
-        let randomOrder = Phaser.Utils.Array.GetRandom(this.availableTargets);
-        
-        // Khách đi từ ngoài rìa mép Trái hoặc Phải vào (Giao diện cửa trên ảnh gốc có dải kính bên Trái)
-        let startX = 1200;
-        let startY = targetSpot.y;
-        
-        let customer = this.add.sprite(startX, startY, randomChar + '-1').setInteractive();
-        customer.setScale(0.23); // Kích thước khách vừa với không gian nhà
-        customer.setDepth(100); 
-        customer.setFlipX(targetSpot.x < startX); // Lật ảnh tuỳ theo việc đang đi qua Trái hay Phải
+        let charNum = Phaser.Math.Between(2, 4);
+        let randomOrder = Phaser.Utils.Array.GetRandom(this.availableOrders);
+
+        // Sinh khách hàng ở ngoài mép màn hình
+        let startX = this.cameras.main.width + 200;
+        let customer = this.add.sprite(startX, spot.y, 'char_atlas', `char_${charNum}_1`);
+        customer.setScale(0.469 * shopPos.scale).setDepth(30).setInteractive();
+        customer.setFlipX(spot.x < startX);
         
         UIFX.addClickBounce(this, customer, true);
         Tooltip.bind(this, customer, "Click để Giao Món!");
 
-        // Gắn Data
-        customer.mySpot = targetSpot;
-        customer.myOrder = randomOrder;
-        customer.charType = randomChar;
+        customer.setData('spot', spot);
+        customer.setData('order', randomOrder);
+        customer.setData('charNum', charNum);
         this.customers.push(customer);
 
-        // Bỏ spawnTimer delay cập nhật vì ta chỉ trần 1 khách debug
-        // if (this.spawnTimer) { ... }
-
-        // Hiệu ứng "Lật bước chân" tạo ảo giác đi bộ
-        let walkAnimTimer = this.time.addEvent({
-            delay: 200, 
+        // Hiệu ứng bước chân (Walk animation)
+        let walkTimer = this.time.addEvent({
+            delay: 200,
             loop: true,
             callback: () => {
-                if (!customer || !customer.active) return; // Fix lỗi Crash khi khách biến mất
-                // Nhấp nháy giữa 2 frame img1 và img2
-                let nextFrame = customer.texture.key === (randomChar + '-1') ? (randomChar + '-2') : (randomChar + '-1');
-                customer.setTexture(nextFrame);
+                if (!customer.active) return;
+                let currentFrame = customer.frame.name;
+                let nextFrame = currentFrame.endsWith('_1') ? `char_${charNum}_2` : `char_${charNum}_1`;
+                customer.setFrame(nextFrame);
             }
         });
 
-        // Xóa Timer khi dọn Khách Hàng khỏi màn hình để giải phóng bộ nhớ
-        customer.on('destroy', () => {
-            walkAnimTimer.remove();
-        });
-
-        // Tween Di chuyển khách đến vị trí xếp hàng
+        // Tween di chuyển vào chỗ đứng
         this.tweens.add({
             targets: customer,
-            x: targetSpot.x,
-            duration: 3500, // Đi mất 3.5 giây
-            ease: 'Linear',
+            x: spot.x,
+            duration: 3500,
             onComplete: () => {
-                // Giảm tốc độ lật chân vì khách chỉ đang bước nhẹ qua lại chờ đợi
-                walkAnimTimer.delay = 500;
-                
-                // Múi giờ nổ bóng Chat Yêu cầu Món
-                this.sound.play('sfx-bubble'); // SFX Bong bóng nổi lên
-                customer.bubble = this.add.image(customer.x + 79, customer.y - 210, 'bubble-1');
-                customer.bubble.setScale(0.41);
-                customer.bubble.setDepth(101);
-                
-                // Hiện ảnh Món ăn bên trong bóng
-                customer.orderIcon = this.add.image(customer.x + 90, customer.y - 209, randomOrder);
-                customer.orderIcon.setDepth(102);
+                walkTimer.delay = 500; // Đi chậm lại khi đã đứng vào chỗ
+                this.sound.play('sfx-bubble');
 
-                if (randomOrder === 'cup-full') {
-                    customer.orderIcon.setScale(0.05);
-                    customer.orderOffsetX = 90; // Giữ nguyên cốc coffee
-                    customer.orderOffsetY = -214;
-                } else {
-                    customer.orderIcon.setScale(0.18);
-                    customer.orderOffsetX = 83; // Theo số đo mới của người chơi
-                    customer.orderOffsetY = -220;
-                }
+                // Tạo Container chứa cả Bong bóng và Icon (Giai đoạn 2 - Fix)
+                const offsetX = 280 * shopPos.scale;
+                const offsetY = 420 * shopPos.scale;
+                
+                let bubbleContainer = this.add.container(customer.x + offsetX, customer.y - offsetY);
+                bubbleContainer.setDepth(35).setAngle(-95);
+                
+                // Nền bong bóng (Tâm là 0,0 trong container)
+                let bubble = this.add.sprite(0, 0, 'char_atlas', 'bubble_1');
+                bubble.setScale(0.902 * shopPos.scale).setOrigin(0.5, 1);
+                
+                // Icon món ăn (Vị trí tương đối so với bong bóng)
+                // Do Container xoay -95 độ, chúng ta cần xoay ngược lại hoặc căn chỉnh tọa độ cục bộ
+                let orderIcon = this.add.sprite(15 * shopPos.scale, -100 * shopPos.scale, randomOrder.atlas, randomOrder.frame);
+                orderIcon.setScale(randomOrder.type === 'drink' ? 0.09 * shopPos.scale : 0.4 * shopPos.scale);
+                // Xoay ngược lại 95 độ để icon luôn đứng thẳng trong bong bóng đang bị nghiêng
+                orderIcon.setAngle(95); 
 
-                // Thêm Tween đi dạo qua lại quanh quầy (Cơ chế chống đứng im)
-                this.tweens.add({
-                    targets: customer,
-                    x: targetSpot.x - 120, // Đi qua lại một biên độ lớn hơn (120px) thay vì chỉ 30px
-                    duration: 3500, // Thong thả đi bộ trong 3.5s
-                    ease: 'Sine.easeInOut',
-                    yoyo: true, // Đi tới x xong đi ngược lại chỗ cũ
-                    repeat: -1, // Lặp vô hạn
-                    onYoyo: () => {
-                        // Khi đi đến điểm targetSpot.x - 120 và bắt đầu quay đầu đi ngược lại (Hướng mũi tên sang Phải)
-                        if (customer && customer.active) customer.setFlipX(false);
-                    },
-                    onRepeat: () => {
-                        // Khi về đến vạch đích targetSpot.x và bắt đầu sải bước lại vòng lặp (Hướng mũi sang Trái)
-                        if (customer && customer.active) customer.setFlipX(true);
-                    }
+                bubbleContainer.add([bubble, orderIcon]);
+                customer.bubbleContainer = bubbleContainer;
+
+                // Bộ đếm thời gian kiên nhẫn (90s)
+                customer.patienceTimer = this.time.delayedCall(90000, () => {
+                    this.leaveCustomer(customer, 'Quá lâu!', 'red');
                 });
 
-                // ==========================================
-                // LÊN ĐỒ ĐỢI KHÁCH
-                // ==========================================
-                customer.patienceTimer = this.time.addEvent({
-                    delay: 90000, // Đợi 1 phút 30 giây
-                    callback: () => {
-                        // Trễ Order -> Dỗi Bỏ Về
-                        customer.bubble.destroy();
-                        customer.orderIcon.destroy();
-                        targetSpot.occupied = false;
-                        
-                        let upsetTxt = this.add.text(customer.x - 20, customer.y - 150, 'Quá lâu!', {font:'bold 24px "Courier New", monospace', fill:'red', backgroundColor: '#ffffff', padding: {x: 5, y: 5}});
-                        this.tweens.add({ targets: upsetTxt, y: upsetTxt.y - 50, alpha: 0, duration: 2000, onComplete: () => upsetTxt.destroy() });
-
-                        let exitX = 1200; // Quay về cửa
-                        customer.setFlipX(exitX < customer.x);
-
-                        // Bật lại máy nhảy hình để đi bộ đi ra
-                        let leaveAnim = this.time.addEvent({
-                            delay: 200, loop: true,
-                            callback: () => {
-                                if(!customer.active) return;
-                                let nFrame = customer.texture.key === (customer.charType + '-1') ? (customer.charType + '-2') : (customer.charType + '-1');
-                                customer.setTexture(nFrame);
-                            }
-                        });
-
-                        this.tweens.add({
-                            targets: customer,
-                            x: exitX,
-                            duration: 3500,
-                            onComplete: () => {
-                                leaveAnim.remove();
-                                this.customers = this.customers.filter(c => c !== customer);
-                                customer.destroy();
-                            }
-                        });
-                    }
-                });
-
-                // ==========================================
-                // GIAO DỊCH GIAO HÀNG VÀ CƠ CHẾ DẠT RA CHỖ KHÁC
-                // ==========================================
-                customer.setInteractive();
-                
-                customer.annoyanceLimit = Phaser.Math.Between(5, 9);
-                customer.annoyanceClicks = 0;
-                
+                // Logic Giao hàng
                 customer.on('pointerdown', () => {
                     let inv = this.registry.get('inventory') || [];
-                    let idx = inv.indexOf(customer.myOrder);
-                   
+                    let idx = inv.indexOf(randomOrder.code);
+
                     if (idx !== -1) {
-                        // TIỀN VÀO TÚI!
-                        this.sound.play('sfx-money'); // Tiếng "Leng keng" thu tiền
-                        inv.splice(idx, 1); // Rút 1 món khỏi balo
-                        this.registry.set('inventory', inv); // Trigger UI text
-                        
-                        // Cấu tiền
+                        // Giao món thành công
+                        this.sound.play('sfx-money');
+                        inv.splice(idx, 1);
+                        this.registry.set('inventory', inv);
+
                         let currentGold = this.registry.get('gold');
                         this.registry.set('gold', currentGold + 10);
-                       
-                        // Dọn dẹp
-                        if (customer.patienceTimer) customer.patienceTimer.remove();
-                        customer.bubble.destroy();
-                        customer.orderIcon.destroy();
-                        targetSpot.occupied = false; // Giải phóng Ô đứng
-                        this.customers = this.customers.filter(c => c !== customer);
-                       
-                        let moneyTxt = this.add.text(customer.x - 10, customer.y - 150, '+$10', {font:'bold 34px "Courier New", monospace', fill:'#00ff00', backgroundColor: '#ffffff', stroke: '#005500', strokeThickness: 3});
-                        this.tweens.add({ targets: moneyTxt, y: moneyTxt.y-100, alpha: 0, duration: 1500, onComplete: ()=>moneyTxt.destroy()});
-                        
-                        // Cho khách vui vẻ rời đi thay vì bắt biến mất tức tưởi
-                        customer.disableInteractive(); // Không cho ấn spam nữa
-                        let exitX = 1200; 
-                        customer.setFlipX(exitX < customer.x);
 
-                        // Bật lại máy nhảy chân
-                        let happyLeaveAnim = this.time.addEvent({
-                            delay: 200, loop: true,
-                            callback: () => {
-                                if(!customer.active) return;
-                                let nFrame = customer.texture.key === (customer.charType + '-1') ? (customer.charType + '-2') : (customer.charType + '-1');
-                                customer.setTexture(nFrame);
-                            }
-                        });
-
-                        this.tweens.add({
-                            targets: customer,
-                            x: exitX,
-                            duration: 3500,
-                            onComplete: () => {
-                                happyLeaveAnim.remove();
-                                customer.destroy();
-                            }
-                        });
-                       
-                    } else {
-                        this.sound.play('sfx-customer-click'); // Kêu ọt ọt khi bị click
-                        customer.annoyanceClicks++;
-                        
-                        if (customer.annoyanceClicks >= customer.annoyanceLimit) {
-                            // Reset limit mới trong trường hợp người chơi click dồn tiếp tục
-                            customer.annoyanceClicks = 0;
-                            customer.annoyanceLimit = Phaser.Math.Between(5, 9);
-                            
-                            // Thực hiện lách người chạy chỗ (Đẩy Y xuống dưới mép màn hình 730)
-                            // Nếu đang ở 730 thì luân phiên chạy về 600
-                            let targetY = customer.y === 600 ? 730 : 600;
-                            
-                            // Bay hơi thông báo "Đổi chỗ"
-                            let shiftTxt = this.add.text(customer.x - 30, customer.y - 120, 'Né ra!', {font:'bold 20px "Courier New", monospace', fill:'#0000ff', backgroundColor:'#ffffff'});
-                            this.tweens.add({ targets: shiftTxt, y: shiftTxt.y - 50, alpha: 0, duration: 1000, onComplete: ()=>shiftTxt.destroy()});
-                            
-                            this.tweens.add({
-                                targets: customer,
-                                y: targetY,
-                                duration: 800,
-                                ease: 'Power2'
-                            });
-                        } else {
-                            // SAI MÓN -> Rung người
-                            let noTxt = this.add.text(customer.x - 30, customer.y - 250, 'Sai món!', {font:'bold 20px "Courier New", monospace', fill:'red', backgroundColor:'#ffffff'});
-                            this.tweens.add({ targets: noTxt, y: noTxt.y-50, alpha: 0, duration: 1000, onComplete: ()=>noTxt.destroy()});
-                            this.tweens.add({ targets: customer, x: customer.x + 10, yoyo: true, repeat: 3, duration: 50 });
+                        // KIỂM TRA ĐIỀU KIỆN THẮNG (Giai đoạn 5)
+                        if (this.registry.get('gold') >= 100) {
+                             this.time.delayedCall(2000, () => {
+                                 this.spawnTimer.remove();
+                                 this.sound.play('sfx-win');
+                                 this.scene.start('WinScene');
+                             });
                         }
+
+                        this.leaveCustomer(customer, '+$10', '#00ff00');
+                    } else {
+                        // Sai món
+                        this.sound.play('sfx-customer-click');
+                        let noTxt = this.add.text(customer.x, customer.y - 150, 'Sai món!', {
+                            font: 'bold 24px Arial', fill: 'red', backgroundColor: '#ffffff', padding: {x:5, y:5}
+                        }).setOrigin(0.5).setDepth(100);
+                        this.tweens.add({ targets: noTxt, y: noTxt.y - 50, alpha: 0, duration: 1000, onComplete: () => noTxt.destroy() });
+                        this.tweens.add({ targets: customer, x: customer.x + 10, yoyo: true, repeat: 3, duration: 50 });
                     }
                 });
+            }
+        });
+    }
+
+    leaveCustomer(customer, message, color) {
+        if (!customer.active) return;
+        if (customer.patienceTimer) customer.patienceTimer.remove();
+        if (customer.bubbleContainer) customer.bubbleContainer.destroy();
+
+        let spot = customer.getData('spot');
+        spot.occupied = false;
+        customer.disableInteractive();
+
+        // Hiển thị thông báo (Tiền hoặc Dỗi)
+        let msgTxt = this.add.text(customer.x, customer.y - 150, message, {
+            font: 'bold 28px Arial', fill: color, backgroundColor: '#ffffff', padding: {x:5, y:5}
+        }).setOrigin(0.5).setDepth(100);
+        this.tweens.add({ targets: msgTxt, y: msgTxt.y - 100, alpha: 0, duration: 2000, onComplete: () => msgTxt.destroy() });
+
+        // Rời đi
+        let exitX = this.cameras.main.width + 200;
+        customer.setFlipX(exitX < customer.x);
+        this.tweens.add({
+            targets: customer,
+            x: exitX,
+            duration: 3500,
+            onComplete: () => {
+                this.customers = this.customers.filter(c => c !== customer);
+                customer.destroy();
             }
         });
     }
 
     update() {
-        if (this.isWin) return; // Khóa toàn bộ cập nhật khi đã thắng để NPC dừng lại
-
-        // Đồng bộ vị trí bong bóng chat và món ăn luân chuyển theo dao động của khách
-        if (this.customers) {
-            this.customers.forEach(c => {
-                if (c.bubble && c.orderIcon) {
-                    c.bubble.x = c.x + 79;
-                    c.bubble.y = c.y - 210;
-                    if (c.orderOffsetX !== undefined) {
-                        c.orderIcon.x = c.x + c.orderOffsetX;
-                        c.orderIcon.y = c.y + c.orderOffsetY;
-                    } else {
-                        c.orderIcon.x = c.x + 90;
-                    }
-                }
-            });
-        }
-    }
-
-    // ==========================================
-    // MÀN HÌNH CHIẾN THẮNG (WIN SCREEN)
-    // ==========================================
-    showWinScreen() {
-        if (this.isWin) return;
-        this.isWin = true;
-
-        // Dừng nhạc nền cũ
-        let bgm = this.sound.get('bgm-theme');
-        if (bgm) bgm.stop();
-        
-        // Phát nhạc thắng
-        this.sound.play('sfx-win');
-
-        // Tạo lớp phủ mờ
-        let overlay = this.add.graphics();
-        overlay.fillStyle(0x000000, 0.7);
-        overlay.fillRect(0, 0, 1024, 768);
-        overlay.setDepth(2000);
-
-        // Chữ Chiến Thắng
-        let winTxt = this.add.text(512, 300, 'BẠN ĐÃ THẮNG!', {
-            font: 'bold 80px "Courier New", monospace',
-            fill: '#ffff00',
-            stroke: '#000000',
-            strokeThickness: 10
-        }).setOrigin(0.5).setDepth(2001);
-
-        this.tweens.add({
-            targets: winTxt,
-            scaleX: 1.1,
-            scaleY: 1.1,
-            duration: 800,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-
-        // Nút QUAY LẠI MENU (Tọa độ giống nút Thoát: 520, 418)
-        let menuBtn = this.add.image(520, 418, 'btn-exit').setOrigin(0.5).setDepth(2001).setInteractive();
-        menuBtn.setScale(0.14);
-        UIFX.addClickBounce(this, menuBtn);
-        Tooltip.bind(this, menuBtn, "Quay về Menu chính");
-        menuBtn.on('pointerdown', () => {
-            this.scene.start('MenuScene');
-        });
-
-        // Nút NHẬN THƯỞNG (Tọa độ giống nút Play: 520, 290)
-        let rewardBtn = this.add.image(520, 290, 'icon-reward').setOrigin(0.5).setDepth(2001).setInteractive();
-        rewardBtn.setScale(0.14); 
-        UIFX.addClickBounce(this, rewardBtn);
-        Tooltip.bind(this, rewardBtn, "Xem Phim Nhận Thưởng!");
-
-        rewardBtn.on('pointerdown', () => {
-            this.playRewardVideo();
-        });
-    }
-
-    playRewardVideo() {
-        // Tắt nhạc nền nếu còn
-        let bgm = this.sound.get('bgm-theme');
-        if (bgm) bgm.stop();
-        
-        // Chuyển hẳn sang Scene Video để dừng tuyệt đối GameScene
-        this.scene.start('VideoScene');
+        // Đồng bộ vị trí bong bóng nếu khách đang di chuyển (dạo qua lại chẳng hạn)
+        // Hiện tại khách chỉ đứng yên nên không cần update liên tục
     }
 }

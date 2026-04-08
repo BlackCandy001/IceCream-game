@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="icon_atlas.png">
+    <SubTexture name="balo" x="2" y="2" width="1360" height="1424"/>
+    <SubTexture name="book" x="1366" y="1341" width="1390" height="1285"/>
+    <SubTexture name="gold" x="1366" y="2" width="1406" height="1335"/>
+    <SubTexture name="reward" x="2" y="2172" width="1008" height="338"/>
+    <SubTexture name="play" x="737" y="1430" width="589" height="588"/>
+    <SubTexture name="back" x="2" y="1430" width="731" height="738"/>
+    <SubTexture name="stop" x="2776" y="898" width="565" height="588"/>
+    <SubTexture name="exit" x="2760" y="1490" width="731" height="738"/>
+    <SubTexture name="upgrade" x="2776" y="2" width="517" height="892" rotated="true" />
+</TextureAtlas>

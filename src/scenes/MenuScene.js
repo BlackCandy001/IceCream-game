@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import DebugTool from '../utils/DebugTool';
+import LayoutUtils from '../utils/LayoutUtils';
 import UIFX from '../utils/UIFX';
 
 export default class MenuScene extends Phaser.Scene {
@@ -8,100 +8,124 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
-        DebugTool.init(this);
-
-        // Khởi chạy Nhạc nền (nếu chưa chạy) để xuyên suốt Game
-        let bgm = this.sound.get('bgm-theme');
-        if (!bgm || !bgm.isPlaying) {
+        // PHÁT NHẠC NỀN (Giai đoạn 5)
+        if (!this.sound.get('bgm-theme')) {
             this.sound.play('bgm-theme', { loop: true, volume: 0.3 });
         }
 
-        // Ảnh nền ngoài cửa hàng
-        let bg = this.add.image(512, 384, 'bg-outside');
-        // Cố định kích cỡ ảnh nền quét vừa khít 100% tỷ lệ khung hình game (1024x768) để không bị hở viền đen và không bị thu nhỏ
-        bg.setDisplaySize(1024, 768);
-        bg.setScrollFactor(0);
-        bg.setDepth(0);
+        const menuBase = { w: 1380, h: 752 };
+        const bgPos = LayoutUtils.getPos(this, 0.5, 0.5, menuBase.w, menuBase.h);
+        
+        let menuBg = this.add.image(bgPos.x, bgPos.y, 'bg_atlas', 'bg_menu');
+        menuBg.setScale(bgPos.scale).setDepth(0);
 
-        // Nút Play
-        let playBtn = this.add.image(520, 290, 'btn-play').setInteractive();
-        playBtn.setScale(0.14); // Thu nhỏ nút theo tỷ lệ mới
-        playBtn.setDepth(11);
+        const uiBase = { w: 1024, h: 768 };
+        const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
+
+        // PlayBtn
+        const playPos = LayoutUtils.getPos(this, 0.518, 0.404, uiBase.w, uiBase.h);
+        let playBtn = this.add.sprite(playPos.x, playPos.y, 'icon_atlas', 'play').setInteractive();
+        playBtn.setScale(0.196 * uiMetrics.scale).setDepth(10);
         UIFX.addClickBounce(this, playBtn);
-
-        // Nút Exit (Thay thế Upgrade)
-        let exitBtn = this.add.image(520, 418, 'btn-exit').setInteractive();
-        exitBtn.setScale(0.14); // Thu nhỏ nút theo tỷ lệ mới
-        exitBtn.setDepth(11);
-        UIFX.addClickBounce(this, exitBtn);
-
-        // Tiêu đề Game (Đã cố định tọa độ chuẩn theo bản thiết kế)
-        let candyTxt = this.add.text(527, 51, "Black Candy", {
-            font: 'bold 50px "Courier New", monospace',
-            fill: '#ffb3d9', 
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setDepth(20).setScale(0.80);
-
-        let chocoIcon = this.add.text(526, 121, "🍫", {
-            font: 'bold 50px "Courier New", monospace',
-            fill: '#ffffff', 
-            stroke: '#000000',
-            strokeThickness: 6
-        }).setOrigin(0.5).setDepth(20).setScale(1.00);
-
-        // Event click 
         playBtn.on('pointerdown', () => {
-            this.time.delayedCall(200, () => this.scene.start('GameScene'));
+            this.sound.play('sfx-book');
+            this.time.delayedCall(200, () => {
+                this.scene.start('GameScene');
+            });
         });
+
+        // ExitBtn
+        const exitPos = LayoutUtils.getPos(this, 0.521, 0.588, uiBase.w, uiBase.h);
+        let exitBtn = this.add.sprite(exitPos.x, exitPos.y, 'icon_atlas', 'exit').setInteractive();
+        exitBtn.setScale(0.174 * uiMetrics.scale).setDepth(10);
+        UIFX.addClickBounce(this, exitBtn);
         exitBtn.on('pointerdown', () => {
-            this.time.delayedCall(200, () => window.close());
+            this.time.delayedCall(200, () => {
+                // Thử đóng cửa sổ trình duyệt
+                window.close();
+                // Dự phòng nếu trình duyệt chặn window.close()
+                setTimeout(() => {
+                    window.location.href = 'about:blank';
+                }, 100);
+            });
         });
 
-        // Hover effect effect nhẹ
-        playBtn.on('pointerover', () => { playBtn.setTint(0xcccccc); });
-        playBtn.on('pointerout', () => { playBtn.clearTint(); });
-        exitBtn.on('pointerover', () => { exitBtn.setTint(0xcccccc); });
-        exitBtn.on('pointerout', () => { exitBtn.clearTint(); });
+        // --- HỆ THỐNG NGƯỜI ĐI ĐƯỜNG (Giai đoạn 5.5) ---
+        // Sử dụng AtlasKey 'char_atlas'
+        this.pedestrians = this.add.group();
+        
+        // Timer sinh nhân vật ngẫu nhiên (Mỗi 3-6 giây cho nhộn nhịp)
+        this.pedestrianTimer = this.time.addEvent({
+            delay: Phaser.Math.Between(3000, 6000),
+            callback: () => {
+                this.spawnPedestrian();
+                this.pedestrianTimer.reset({
+                    delay: Phaser.Math.Between(3000, 6000),
+                    callback: this.pedestrianTimer.callback,
+                    callbackScope: this
+                });
+            },
+            callbackScope: this,
+            loop: true
+        });
 
-        this.charList = ['char2', 'char3', 'char4']; 
-        this.time.delayedCall(500, () => this.spawnPasserby());
+        // Sinh ngay 1 người đầu tiên
+        this.time.delayedCall(500, () => this.spawnPedestrian());
+
+        // Dọn dẹp khi chuyển Scene
+        this.events.on('shutdown', () => {
+            if (this.pedestrianTimer) this.pedestrianTimer.destroy();
+        });
+
+        this.scale.once('resize', () => this.scene.restart());
     }
 
-    // Hàm gọi sinh ra Khách hàng đi dạo ngoài Menu màn hình
-    spawnPasserby() {
-        let isLeft = Phaser.Math.Between(0, 1) === 0;
-        let startX = isLeft ? -100 : 1100;
-        let endX = isLeft ? 1200 : -200;
-        let pChar = Phaser.Utils.Array.GetRandom(this.charList);
+    spawnPedestrian() {
+        // Sử dụng hệ quy chiếu 2816x1536 để đồng bộ với GameScene
+        const shopBase = { w: 2816, h: 1536 };
+        const metrics = LayoutUtils.getMetrics(this, shopBase.w, shopBase.h);
         
-        let passerby = this.add.sprite(startX, 600, pChar + '-1'); 
-        passerby.setScale(0.23); 
-        passerby.setDepth(1); // Nằm sau Bảng UI Menu (depth 10)
-        passerby.setFlipX(!isLeft); 
+        // 1. CHỌN HƯỚNG ĐI (Random)
+        const isLeftToRight = Phaser.Math.Between(0, 1) === 0;
+        const startX = isLeftToRight ? -0.2 : 1.2;
+        const endX = isLeftToRight ? 1.2 : -0.2;
+        const sidewalkY = 0.774; // Tọa độ Y đồng bộ với khách hàng ở GameScene
 
-        // Nháy khung hình bước đi
+        const startPos = LayoutUtils.getPos(this, startX, sidewalkY, shopBase.w, shopBase.h);
+        const endPos = LayoutUtils.getPos(this, endX, sidewalkY, shopBase.w, shopBase.h);
+
+        // 2. CHỌN NHÂN VẬT (Random char_2, char_3, char_4 từ atlas)
+        const charID = Phaser.Utils.Array.GetRandom(['2', '3', '4']);
+        const charPrefix = `char_${charID}_`;
+        
+        let p = this.add.sprite(startPos.x, startPos.y, 'char_atlas', charPrefix + '1');
+        // Scale 0.469 đồng bộ với khách hàng ở GameScene
+        p.setScale(0.469 * metrics.scale).setDepth(5); 
+        p.setFlipX(!isLeftToRight); 
+
+        this.pedestrians.add(p);
+
+        // 3. HOẠT ẢNH ĐI BỘ (Đổi frame mỗi 250ms)
         let walkTimer = this.time.addEvent({
-            delay: 200, loop: true,
+            delay: 250,
+            loop: true,
             callback: () => {
-                if(!passerby.active) return;
-                let nFrame = passerby.texture.key === (pChar + '-1') ? (pChar + '-2') : (pChar + '-1');
-                passerby.setTexture(nFrame);
+                if (!p || !p.active) return;
+                const nextFrame = p.frame.name === (charPrefix + '1') ? (charPrefix + '2') : (charPrefix + '1');
+                p.setFrame(nextFrame);
             }
         });
 
-        // Đi băng qua đường
+        // 4. DI CHUYỂN QUA MÀN HÌNH (Tween) thong thả
         this.tweens.add({
-            targets: passerby,
-            x: endX,
-            duration: Phaser.Math.Between(7000, 11000), 
+            targets: p,
+            x: endPos.x,
+            duration: Phaser.Math.Between(10000, 15000),
+            ease: 'Linear',
             onComplete: () => {
-                walkTimer.remove();
-                passerby.destroy();
+                walkTimer.destroy();
+                p.destroy();
             }
         });
-
-        // Gọi người tiếp theo xuất hiện
-        this.time.delayedCall(Phaser.Math.Between(4000, 10000), () => this.spawnPasserby());
     }
 }

@@ -20,10 +20,16 @@ export default class UIFX {
 
             scene.tweens.add({
                 targets: gameObject,
-                scaleX: gameObject.originalScaleX * 0.85, // Thu nhỏ 15%
+                scaleX: gameObject.originalScaleX * 0.85, 
                 scaleY: gameObject.originalScaleY * 0.85,
-                duration: 100, // Nháy nhanh trong 100ms
-                yoyo: true // Tự động quay về kích thước ban đầu (như cái lò xo)
+                duration: 80, 
+                yoyo: true,
+                onComplete: () => {
+                    // Đảm bảo tuyệt đối quay về đúng scale gốc sau khi xong
+                    if (gameObject.originalScaleX) {
+                        gameObject.setScale(gameObject.originalScaleX, gameObject.originalScaleY);
+                    }
+                }
             });
         });
     }

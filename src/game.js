@@ -8,16 +8,17 @@ import DrinkStationScene from './scenes/DrinkStationScene.js';
 import IceCreamStationScene from './scenes/IceCreamStationScene.js';
 import RecipeScene from './scenes/RecipeScene.js';
 import VideoScene from './scenes/VideoScene.js';
+import WinScene from './scenes/WinScene.js';
 
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 1024,
-    height: 768,
+    width: '100%',
+    height: '100%',
     pixelArt: true, 
     transparent: true,
     scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
     physics: {
@@ -33,7 +34,8 @@ const config = {
         DrinkStationScene,
         IceCreamStationScene,
         RecipeScene,
-        VideoScene
+        VideoScene,
+        WinScene
     ]
 };
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="char_atlas.png">
+    <SubTexture name="bubble_1" x="3052" y="1833" width="207" height="268" rotated="true" />
+    <SubTexture name="bubble_2" x="3052" y="1546" width="216" height="283" rotated="true" />
+    <SubTexture name="char_2_1" x="2" y="1595" width="1115" height="1540" />
+    <SubTexture name="char_2_2" x="1087" y="2" width="1086" height="1575" />
+    <SubTexture name="char_3_1" x="1121" y="1581" width="999" height="1540" />
+    <SubTexture name="char_3_2" x="2124" y="1581" width="924" height="1587" />
+    <SubTexture name="char_4_1" x="2177" y="2" width="1093" height="1540" />
+    <SubTexture name="char_4_2" x="2" y="2" width="1081" height="1589" />
+</TextureAtlas>

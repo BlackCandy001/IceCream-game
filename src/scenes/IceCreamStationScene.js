@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import DebugTool from '../utils/DebugTool';
+import LayoutUtils from '../utils/LayoutUtils';
 import Tooltip from '../utils/Tooltip';
 import UIFX from '../utils/UIFX';
 
@@ -9,234 +9,219 @@ export default class IceCreamStationScene extends Phaser.Scene {
     }
 
     create() {
-        DebugTool.init(this);
-        // Nền bề mặt
-        let surfaceBg = this.add.image(512, 384, 'ui-surface');
-        surfaceBg.setScale(Math.max(1024 / surfaceBg.width, 768 / surfaceBg.height));
+        // Hệ quy chiếu ảnh mặt bàn (2760x1504)
+        const surfaceBase = { w: 2760, h: 1504 };
+        const bgPos = LayoutUtils.getPos(this, 0.5, 0.5, surfaceBase.w, surfaceBase.h);
+        // bgPos.scale ≈ 0.3565 tại viewport 984x705
 
-        // Bảng Menu Kem (Panel)
-        let panel = this.add.image(834, 457, 'ui-icecream-panel');
-        panel.setScale(0.44);
+        let surfaceBg = this.add.image(bgPos.x, bgPos.y, 'bg_atlas', 'ui_surface');
+        surfaceBg.setScale(bgPos.scale);
 
-        // Nút quay lại
-        let backBtn = this.add.image(70, 70, 'btn-back').setInteractive();
-        backBtn.setScale(0.15); // Tỉ lệ ướm chừng chuẩn xác
-        backBtn.setDepth(1000);
+        // === PANEL === NX:0.860, NY:0.580, S:0.330 → coeff = 0.330/0.3565 ≈ 0.926
+        const panelPos = LayoutUtils.getPos(this, 0.860, 0.580, surfaceBase.w, surfaceBase.h);
+        let panel = this.add.sprite(panelPos.x, panelPos.y, 'ui_atlas', 'panel_icecream');
+        panel.setScale(0.926 * bgPos.scale);
+
+        // === ĐIỀU HƯỚNG (UI base 1024x768) ===
+        // uiMetrics.scale ≈ 0.918 tại viewport 984x705
+        const uiBase = { w: 1024, h: 768 };
+        const uiMetrics = LayoutUtils.getMetrics(this, uiBase.w, uiBase.h);
+
+        // BackBtn: NX:0.067, NY:0.225, S:0.120 → coeff = 0.120/0.918 ≈ 0.131
+        const backPos = LayoutUtils.getPos(this, 0.067, 0.225, uiBase.w, uiBase.h);
+        let backBtn = this.add.sprite(backPos.x, backPos.y, 'icon_atlas', 'back').setInteractive();
+        backBtn.setScale(0.131 * uiMetrics.scale).setDepth(2000);
         UIFX.addClickBounce(this, backBtn);
         backBtn.on('pointerdown', () => {
-            this.time.delayedCall(200, () => {
-                this.scene.stop();
-                this.scene.resume('GameScene');
-            });
+            this.scene.stop();
+            this.scene.resume('GameScene');
         });
-        backBtn.on('pointerover', () => backBtn.setTint(0xdddddd));
-        backBtn.on('pointerout', () => backBtn.clearTint());
-        Tooltip.bind(this, backBtn, "Vùng Sảnh Chính");
 
-        // ---------------------------------------------------------
-        // KHU VỰC SẮP XẾP GIAO DIỆN CHUẨN TỌA ĐỘ
-        // ---------------------------------------------------------
+        // Balo: NX:0.864, NY:0.212, S:0.070 → coeff = 0.070/0.918 ≈ 0.076
+        const baloPos = LayoutUtils.getPos(this, 0.864, 0.212, uiBase.w, uiBase.h);
+        let baloUI = this.add.sprite(baloPos.x, baloPos.y, 'icon_atlas', 'balo').setInteractive();
+        baloUI.setScale(0.076 * uiMetrics.scale).setDepth(2000);
+        UIFX.addClickBounce(this, baloUI, true);
+
+        // === LỚP KEM ĐƠN (2760x1504 base) ===
+        // coeff chung cho kem: S≈0.601 → 0.601/0.3565 ≈ 1.685
+
+        // VanillaLayer: NX:0.862, NY:0.338, S:0.605 → coeff ≈ 1.697
+        const vPos = LayoutUtils.getPos(this, 0.862, 0.338, surfaceBase.w, surfaceBase.h);
+        let baseVan = this.add.sprite(vPos.x, vPos.y, 'cream_atlas', 'vanilla').setInteractive();
+        baseVan.setScale(1.697 * bgPos.scale);
+
+        // StrawberryLayer: NX:0.809, NY:0.541, S:0.625 → coeff = 0.625/0.3565 ≈ 1.753
+        const sPos = LayoutUtils.getPos(this, 0.809, 0.541, surfaceBase.w, surfaceBase.h);
+        let baseStr = this.add.sprite(sPos.x, sPos.y, 'cream_atlas', 'strawberry').setInteractive();
+        baseStr.setScale(1.753 * bgPos.scale);
+
+        // ChocolateLayer: NX:0.915, NY:0.539, S:0.625 → coeff = 0.625/0.3565 ≈ 1.753
+        const cPos = LayoutUtils.getPos(this, 0.915, 0.539, surfaceBase.w, surfaceBase.h);
+        let baseCho = this.add.sprite(cPos.x, cPos.y, 'cream_atlas', 'chocolate').setInteractive();
+        baseCho.setScale(1.753 * bgPos.scale);
+
+        // MintLayer: NX:0.810, NY:0.722, S:0.612 → coeff ≈ 1.717
+        const mPos = LayoutUtils.getPos(this, 0.810, 0.722, surfaceBase.w, surfaceBase.h);
+        let baseMin = this.add.sprite(mPos.x, mPos.y, 'cream_atlas', 'mint').setInteractive();
+        baseMin.setScale(1.717 * bgPos.scale);
+
+        // OrangeLayer: NX:0.915, NY:0.720, S:0.601 → coeff ≈ 1.685
+        const oPos = LayoutUtils.getPos(this, 0.915, 0.720, surfaceBase.w, surfaceBase.h);
+        let baseOrg = this.add.sprite(oPos.x, oPos.y, 'cream_atlas', 'orange').setInteractive();
+        baseOrg.setScale(1.685 * bgPos.scale);
+
+        // === TOPPING (2760x1504 base) ===
+
+        // JarCone: NX:0.160, NY:0.640, S:0.230 → coeff = 0.230/0.3565 ≈ 0.645
+        const jarCPos = LayoutUtils.getPos(this, 0.160, 0.640, surfaceBase.w, surfaceBase.h);
+        let jarCone = this.add.sprite(jarCPos.x, jarCPos.y, 'vun_atlas', 'cone_stack').setInteractive();
+        jarCone.setScale(0.645 * bgPos.scale);
+
+        // JarCherry: NX:0.222, NY:0.267, S:0.378, R:-90 → coeff = 0.378/0.3565 ≈ 1.060
+        const jarCHPos = LayoutUtils.getPos(this, 0.222, 0.267, surfaceBase.w, surfaceBase.h);
+        let jarCherry = this.add.sprite(jarCHPos.x, jarCHPos.y, 'vun_atlas', 'cherry').setInteractive();
+        jarCherry.setScale(1.060 * bgPos.scale).setAngle(-90);
+
+        // JarSprinkle: NX:0.316, NY:0.259, S:0.378, R:-90 → coeff = 1.060
+        const jarSPos = LayoutUtils.getPos(this, 0.316, 0.259, surfaceBase.w, surfaceBase.h);
+        let jarSpr = this.add.sprite(jarSPos.x, jarSPos.y, 'vun_atlas', 'sprinkle').setInteractive();
+        jarSpr.setScale(1.060 * bgPos.scale).setAngle(-90);
+
+        // JarPeanut: NX:0.416, NY:0.262, S:0.378, R:-90 → coeff = 1.060
+        const jarPPos = LayoutUtils.getPos(this, 0.416, 0.262, surfaceBase.w, surfaceBase.h);
+        let jarPea = this.add.sprite(jarPPos.x, jarPPos.y, 'vun_atlas', 'peanut').setInteractive();
+        jarPea.setScale(1.060 * bgPos.scale).setAngle(-90);
+
+        this.scale.once('resize', () => this.scene.restart());
+
+        // =========================================================
+        // LOGIC LÀM KEM (Giai đoạn 3)
+        // =========================================================
+        this.activeCone = null;
+        this.currentStack = []; // Lưu trữ các Sprite viên kem đã xếp
+        this.isDraggingScoop = null;
         
-        let baseVan = this.add.image(857, 244, 'base-vanilla').setInteractive();
-        baseVan.setScale(0.87);
-        Tooltip.bind(this, baseVan, "Kem Vị Vani");
-
-        let baseStr = this.add.image(785, 387, 'base-strawberry').setInteractive();
-        baseStr.setScale(0.86);
-        Tooltip.bind(this, baseStr, "Kem Vị Dâu");
-
-        let baseCho = this.add.image(924, 386, 'base-chocolate').setInteractive();
-        baseCho.setScale(0.81);
-        Tooltip.bind(this, baseCho, "Kem Vị Socola");
-
-        let baseMin = this.add.image(785, 528, 'base-mint').setInteractive();
-        baseMin.setScale(0.89);
-        Tooltip.bind(this, baseMin, "Kem Vị Bạc Hà");
-
-        let baseOrg = this.add.image(927, 529, 'base-orange').setInteractive();
-        baseOrg.setScale(0.82);
-        Tooltip.bind(this, baseOrg, "Kem Vị Cam");
-
-        // Cụm Lọ Topping & Ốc quế
-        let jarCone = this.add.image(125, 531, 'jar-cone').setInteractive();
-        jarCone.setScale(0.24);
-        UIFX.addClickBounce(this, jarCone, true);
-        Tooltip.bind(this, jarCone, "Lấy đồ đựng (Ốc Quế)");
-
-        let jarCherry = this.add.image(66, 193, 'jar-cherry').setInteractive();
-        jarCherry.setScale(0.51);
-        UIFX.addClickBounce(this, jarCherry);
-        Tooltip.bind(this, jarCherry, "Trang trí: Anh Đào");
-
-        let jarPeanut = this.add.image(213, 190, 'jar-peanut').setInteractive();
-        jarPeanut.setScale(0.51);
-        UIFX.addClickBounce(this, jarPeanut);
-        Tooltip.bind(this, jarPeanut, "Trang trí: Đậu Phộng");
-
-        let jarSprinkle = this.add.image(341, 185, 'jar-sprinkle').setInteractive();
-        jarSprinkle.setScale(0.55);
-        UIFX.addClickBounce(this, jarSprinkle);
-        Tooltip.bind(this, jarSprinkle, "Trang trí: Cốm Màu");
-
-        // Balo giao hàng (Chứa đồ uống/kem đã hoàn thành)
-        let balo = this.add.image(866, 72, 'icon-balo').setInteractive();
-        balo.setScale(0.07);
-        UIFX.addClickBounce(this, balo, true);
-        Tooltip.bind(this, balo, "Bỏ vào Hành Trang (Balo)");
-        // =========================================================
-        // LOGIC KÉO THẢ & TRỘN KEM (DRAG & DROP)
-        // =========================================================
-        let scene = this;
-        let isDraggingScoop = null;
-        let activeCone = null;
-        let currentIceCreamStack = []; // Mảng lưu các tầng kem
-        const DROP_ZONE_X = 500; // Khay đựng nằm giữa bàn
-        const DROP_ZONE_Y = 550;
-
-        // 1. Sinh Ốc Quế Đơn
+        // Điểm thả kem (Drop Zone) - NX:0.5, NY:0.65 (base 2760x1504)
+        const dropPos = LayoutUtils.getPos(this, 0.5, 0.65, 2760, 1504);
+        
+        // 1. LẤY ỐC QUẾ
         jarCone.on('pointerdown', () => {
-            // Nếu chưa có ốc quế trên bàn, thì tạo ra
-            if (!activeCone) { 
-                this.sound.play('sfx-place'); // Kêu "cạch" khi đặt quế lên bàn
-                activeCone = this.add.image(DROP_ZONE_X, DROP_ZONE_Y, 'item-cone');
-                activeCone.setScale(0.5); // Bạn có thể chỉnh sửa tỉ lệ này nếu ốc quế to quá
-                activeCone.setDepth(5);
-            }
+             if (this.activeCone) return;
+             this.sound.play('sfx-place');
+             this.activeCone = this.add.sprite(dropPos.x, dropPos.y, 'vun_atlas', 'cone_single');
+             this.activeCone.setScale(1.2 * bgPos.scale).setDepth(10).setAngle(-90);
         });
 
-        // 2. Thiết lập kéo lớp kem
-        const setupFlavorDrag = (sourceObj, textureKey) => {
-            // Lưu lại kích thước ban đầu khay kem
-            if (!sourceObj.originalScaleX) {
-                sourceObj.originalScaleX = sourceObj.scaleX;
-                sourceObj.originalScaleY = sourceObj.scaleY;
-            }
+        // 2. MÚC KEM & KÉO THẢ
+        const flavors = [
+            { obj: baseVan, key: 'vanilla' },
+            { obj: baseStr, key: 'strawberry' },
+            { obj: baseCho, key: 'chocolate' },
+            { obj: baseMin, key: 'mint' },
+            { obj: baseOrg, key: 'orange' }
+        ];
 
-            sourceObj.on('pointerdown', (pointer) => {
-                if(!activeCone) {
-                    // Báo lỗi bằng chữ nổi lên bốc hơi
-                    let errTxt = scene.add.text(pointer.x, pointer.y - 40, 'Bạn chưa lấy que ốc quế!', { 
-                        font: 'bold 22px "Courier New", monospace', fill: '#ff0000', backgroundColor: '#ffffff', padding: {x: 8, y: 5} 
-                    }).setOrigin(0.5);
-                    errTxt.setDepth(9999);
-                    scene.tweens.add({
-                        targets: errTxt,
-                        y: errTxt.y - 60,
-                        alpha: 0,
-                        duration: 1800,
-                        onComplete: () => errTxt.destroy()
-                    });
-                    return; // Ngăn chặn kéo kem
+        flavors.forEach(flavor => {
+            flavor.obj.on('pointerdown', (pointer) => {
+                if (!this.activeCone) {
+                    this.showErrorText(pointer.x, pointer.y, 'Bạn chưa lấy ốc quế!');
+                    return;
                 }
-                
-                // Thu nhỏ hình ảnh Của Cả Cái Khay Kem để báo hiệu đang bốc kem đi
-                sourceObj.setScale(sourceObj.originalScaleX * 0.85);
+                if (this.currentStack.length >= 5) {
+                    this.showErrorText(pointer.x, pointer.y, 'Đã đầy 5 tầng!');
+                    return;
+                }
 
-                // Sinh ra viên kem "nháp" bám theo chuột
-                scene.sound.play('sfx-scoop'); // Âm thanh múc kem!
-                isDraggingScoop = scene.add.image(pointer.x, pointer.y, textureKey);
-                isDraggingScoop.setScale(sourceObj.originalScaleX); // Viên nháp trên tay giữ nguyên tỉ lệ cũ
-                isDraggingScoop.setDepth(100);
-                
-                // Nhớ lại Khay nào để tí thả chuột trả về như cũ
-                isDraggingScoop.sourceObj = sourceObj;
+                this.sound.play('sfx-scoop');
+                this.isDraggingScoop = this.add.sprite(pointer.x, pointer.y, 'cream_atlas', flavor.key);
+                this.isDraggingScoop.setScale(2.2 * bgPos.scale).setDepth(200);
+                this.isDraggingScoop.flavorKey = flavor.key;
             });
-        };
+        });
 
-        setupFlavorDrag(baseVan, 'base-vanilla');
-        setupFlavorDrag(baseStr, 'base-strawberry');
-        setupFlavorDrag(baseCho, 'base-chocolate');
-        setupFlavorDrag(baseMin, 'base-mint');
-        setupFlavorDrag(baseOrg, 'base-orange');
-
-        // Bám theo chuột
         this.input.on('pointermove', (pointer) => {
-            if (isDraggingScoop) {
-                isDraggingScoop.x = pointer.x;
-                isDraggingScoop.y = pointer.y;
+            if (this.isDraggingScoop) {
+                this.isDraggingScoop.x = pointer.x;
+                this.isDraggingScoop.y = pointer.y;
             }
         });
 
-        // Thả chuột
         this.input.on('pointerup', (pointer) => {
-            if (isDraggingScoop) {
-                // TRẢ LẠI HÌNH ẢNH CŨ CHO KHAY KEM (Phóng to lại)
-                if (isDraggingScoop.sourceObj) {
-                    isDraggingScoop.sourceObj.setScale(isDraggingScoop.sourceObj.originalScaleX);
+            if (this.isDraggingScoop) {
+                // XÁC ĐỊNH MỤC TIÊU HÍT (Fix Logic Giai đoạn 3)
+                // Nếu chưa có kem: hít vào ốc quế. Nếu đã có kem: hít vào viên kem trên cùng.
+                let targetX = dropPos.x;
+                let targetY = dropPos.y;
+                if (this.currentStack.length > 0) {
+                    let topScoop = this.currentStack[this.currentStack.length - 1];
+                    targetX = topScoop.x;
+                    targetY = topScoop.y;
                 }
 
-                // Tính khoảng cách từ con trỏ tới vỏ ốc quế
-                let dist = Phaser.Math.Distance.Between(isDraggingScoop.x, isDraggingScoop.y, DROP_ZONE_X, DROP_ZONE_Y);
+                let dist = Phaser.Math.Distance.Between(this.isDraggingScoop.x, this.isDraggingScoop.y, targetX, targetY);
                 
-                // Nếu thả đủ gần (khoảng cách < 150px)
-                if (dist < 150 && activeCone) {
-                    scene.sound.play('sfx-place'); // Âm thanh thả kem vào vỏ ốc quế!
-                    let stackCount = currentIceCreamStack.length;
+                // Kiểm tra nếu thả gần mục tiêu (khoảng 150px)
+                if (dist < 150 * bgPos.scale && this.activeCone) {
+                    this.sound.play('sfx-place');
+                    let count = this.currentStack.length;
                     
-                    // Tính độ cao đôn lên (Mỗi tầng đôn lên 50px)
-                    let newY = DROP_ZONE_Y - 40 - (stackCount * 25);
+                    // TINH CHỈNH TỌA ĐỘ CĂN CHỈNH (Fix Giai đoạn 3)
+                    // newX: Bù nhẹ 2px để tâm kem khớp tâm ốc quế sau khi xoay -90
+                    // newY: Giảm từ 45 xuống 20 để viên kem đầu lún sâu vào miệng ốc tự nhiên hơn
+                    let newX = dropPos.x + (2 * bgPos.scale);
+                    let newY = dropPos.y - (150 * bgPos.scale) - (count * 50 * bgPos.scale);
                     
-                    let newScoop = scene.add.image(DROP_ZONE_X, newY, isDraggingScoop.texture.key);
-                    newScoop.setScale(isDraggingScoop.scaleX); // Cùng tỉ lệ
-                    newScoop.setDepth(10 + stackCount); // Kem mới xếp đè lên kem cũ
+                    let scoop = this.add.sprite(newX, newY, 'cream_atlas', this.isDraggingScoop.flavorKey);
+                    scoop.setScale(2.2 * bgPos.scale).setDepth(11 + count);
+                    scoop.flavorKey = this.isDraggingScoop.flavorKey;
                     
-                    currentIceCreamStack.push(newScoop);
+                    this.currentStack.push(scoop);
                 }
                 
-                // Xoá viên kem nháp khỏi chuột
-                isDraggingScoop.destroy();
-                isDraggingScoop = null;
+                this.isDraggingScoop.destroy();
+                this.isDraggingScoop = null;
             }
         });
 
-        // =========================================================
-        // BALO - LƯU TRỮ VÀO HÀNH TRANG ĐỂ GIAO KHÁCH
-        // =========================================================
-        balo.on('pointerdown', () => {
-            this.sound.play('sfx-balo'); // Tiếng túi đồ
-            if (activeCone && currentIceCreamStack.length > 0) {
-                // Ánh xạ file asset thực tế (vd: 'base-vanilla' -> 'vanilla')
-                const flavorMap = {
-                    'base-vanilla': 'vanilla',
-                    'base-strawberry': 'strawberry',
-                    'base-chocolate': 'chocolate',
-                    'base-mint': 'mint',
-                    'base-orange': 'orange'
-                    // Lược bỏ topping khỏi map để nó chỉ mang tính chất minh họa!
-                };
-
-                // Trích xuất tối đa 2 VỊ KEM CHÍNH (bỏ qua các lớp topping xen kẽ)
+        // 3. ĐÓNG GÓI VÀO BALO
+        baloUI.on('pointerdown', () => {
+            if (this.activeCone && this.currentStack.length > 0) {
+                this.sound.play('sfx-balo');
+                
+                // Chuyển đổi stack kem thành mã món ăn (lấy tối đa 2 tầng vị đầu tiên cho logic giao hàng)
                 let parts = [];
-                for (let i = 0; i < currentIceCreamStack.length; i++) {
-                    let key = currentIceCreamStack[i].texture.key;
-                    if (flavorMap[key]) {
-                        parts.push(flavorMap[key]);
-                        if (parts.length === 2) break; // Chỉ tính được tối đa kem 2 tầng
-                    }
+                for (let i = 0; i < this.currentStack.length; i++) {
+                    parts.push(this.currentStack[i].flavorKey);
+                    if (parts.length === 2) break;
                 }
+                let code = 'target-' + parts.join('-');
                 
-                // Kết nối thành mã Code Order chuẩn (giống như target-...)
-                let finalCode = 'target-' + parts.join('-');
-                
-                // Lưu vào kho Inventory trung tâm (dùng this.registry)
+                // Lưu vào Inventory
                 let inv = this.registry.get('inventory') || [];
-                inv.push(finalCode);
+                inv.push(code);
                 this.registry.set('inventory', inv);
 
-                // Dọn bàn làm việc
-                activeCone.destroy();
-                activeCone = null;
-                currentIceCreamStack.forEach(img => img.destroy());
-                currentIceCreamStack = [];
+                // Dọn bàn
+                this.activeCone.destroy();
+                this.activeCone = null;
+                this.currentStack.forEach(s => s.destroy());
+                this.currentStack = [];
 
-                // Thông báo báo hỷ
-                let notifyTxt = this.add.text(balo.x, balo.y - 50, 'Đã cất Kem!', {font:'bold 24px Arial', fill:'#00aa00', backgroundColor:'#ffffff', padding:{x:5,y:5}}).setOrigin(0.5);
-                this.tweens.add({ targets: notifyTxt, y: notifyTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => notifyTxt.destroy() });
+                let okTxt = this.add.text(baloUI.x, baloUI.y - 50, 'Đã cất Kem!', {
+                    font: 'bold 24px Arial', fill: '#00aa00', backgroundColor: '#ffffff', padding: {x:5, y:5}
+                }).setOrigin(0.5);
+                this.tweens.add({ targets: okTxt, y: okTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => okTxt.destroy() });
             } else {
-                // Rỗng
-                let notifyTxt = this.add.text(balo.x, balo.y - 50, 'Chưa có Kem!', {font:'bold 24px Arial', fill:'#ff0000', backgroundColor:'#ffffff', padding:{x:5,y:5}}).setOrigin(0.5);
-                this.tweens.add({ targets: notifyTxt, y: notifyTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => notifyTxt.destroy() });
+                this.showErrorText(baloUI.x, baloUI.y, 'Chống không!');
             }
         });
+    }
+
+    showErrorText(x, y, message) {
+        let errTxt = this.add.text(x, y - 50, message, {
+            font: 'bold 24px Arial', fill: 'red', backgroundColor: '#ffffff', padding: {x:5, y:5}
+        }).setOrigin(0.5).setDepth(9000);
+        this.tweens.add({ targets: errTxt, y: errTxt.y - 50, alpha: 0, duration: 1500, onComplete: () => errTxt.destroy() });
     }
 }

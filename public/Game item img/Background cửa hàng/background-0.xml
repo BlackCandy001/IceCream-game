@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with TexturePacker https://www.codeandweb.com/texturepacker -->
+<!-- $TexturePacker:SmartUpdate:52e3840be576943eae36aee96784cb76:7fec850af067633fa21c4382bf0b586c:c49d9f7f4217569ffdfbe5da5265eaef$ -->
+<!--Format:
+n  => name of the sprite
+x  => sprite x pos in texture
+y  => sprite y pos in texture
+w  => sprite width (may be trimmed)
+h  => sprite height (may be trimmed)
+pX => x pos of the pivot point (relative to sprite width)
+pY => y pos of the pivot point (relative to sprite height)
+oX => sprite's x-corner offset (only available if trimmed)
+oY => sprite's y-corner offset (only available if trimmed)
+oW => sprite's original width (only available if trimmed)
+oH => sprite's original height (only available if trimmed)
+r => 'y' only set if sprite is rotated
+with polygon mode enabled:
+vertices   => points in sprite coordinate system (x0,y0,x1,y1,x2,y2, ...)
+verticesUV => points in sheet coordinate system (x0,y0,x1,y1,x2,y2, ...)
+triangles  => sprite triangulation, 3 vertex indices per triangle
+-->
+<TextureAtlas imagePath="background-0.png" width="2820" height="3804">
+    <sprite n="Ảnh ngoài cửa hàng.png" x="2" y="2" w="1380" h="752"/>
+    <sprite n="Bề mặt.png" x="2" y="758" w="2760" h="1504"/>
+    <sprite n="quầy làm kem không item.png" x="2" y="2266" w="2816" h="1536"/>
+</TextureAtlas>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="background-0.png">
+    <SubTexture name="bg_menu" x="2" y="2" width="1380" height="752"/>
+    <SubTexture name="ui_surface" x="2" y="758" width="2760" height="1504"/>
+    <SubTexture name="bg_shop" x="2" y="2266" width="2816" height="1536"/>
+</TextureAtlas>

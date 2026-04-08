@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="classCream.png">
+    <SubTexture name="mint" x="2" y="2" width="123" height="100"/>
+    <SubTexture name="orange" x="2" y="106" width="122" height="105"/>
+    <SubTexture name="chocolate" x="2" y="215" width="122" height="99"/>
+    <SubTexture name="strawberry" x="2" y="318" width="119" height="105"/>
+    <SubTexture name="vanilla" x="2" y="427" width="119" height="103"/>
+</TextureAtlas>

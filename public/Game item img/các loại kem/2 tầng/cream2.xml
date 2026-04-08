@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="cream2.png">
+    <SubTexture name="kem ốc quế dâu socola.png" x="2" y="2" width="191" height="414"/>
+    <SubTexture name="kem ốc quế dâu vani.png" x="785" y="2" width="196" height="402"/>
+    <SubTexture name="kem ốc quế socola vani.png" x="391" y="2" width="189" height="413"/>
+    <SubTexture name="kem ốc quế vani bạc hà.png" x="584" y="2" width="197" height="403"/>
+    <SubTexture name="kem ốc quế vani dâu.png" x="197" y="2" width="190" height="414"/>
+</TextureAtlas>

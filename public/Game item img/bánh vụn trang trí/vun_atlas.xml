@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<TextureAtlas imagePath="vun_atlas.png">
+    <SubTexture name="cherry" x="767" y="2" width="224" height="198" />
+    <SubTexture name="cone_stack" x="2" y="204" width="965" height="1191" />
+    <SubTexture name="sprinkle" x="311" y="2" width="224" height="186" />
+    <SubTexture name="cone_single" x="2" y="2" width="305" height="180" />
+    <SubTexture name="peanut" x="539" y="2" width="224" height="187" />
+</TextureAtlas>
