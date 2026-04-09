@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="BlackCandy001/IceCream-game/public/Game item img/Background cửa hàng/readme.png" alt="background">
+  <img src="public/Game item img/Background cửa hàng/readme.png" alt="background">
 </p>
 
 Con game được làm trong 6 tiếng.
